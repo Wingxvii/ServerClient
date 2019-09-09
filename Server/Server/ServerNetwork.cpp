@@ -2,7 +2,16 @@
 
 ServerNetwork::ServerNetwork()
 {
+	//1: Start Winsock
+	WSADATA data;
+	WORD version = MAKEWORD(2, 2);
 
+	//startup
+	int wsOk = WSAStartup(version, &data);
+	if (wsOk != 0) {
+		cout << "cant start winsock" << wsOk;
+		return;
+	}
 }
 
 ServerNetwork::~ServerNetwork()

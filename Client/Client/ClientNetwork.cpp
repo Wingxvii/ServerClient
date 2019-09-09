@@ -66,3 +66,8 @@ void ClientNetwork::startListening()
 		}		
 		});
 	listen.detach();}
+
+void ClientNetwork::setClientIndex(string index)
+{
+	clientIndex = index;
+}

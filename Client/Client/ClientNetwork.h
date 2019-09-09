@@ -36,6 +36,7 @@ public:
 
 	void startListening();
 
+	void setClientIndex(string index);
 
 	//multithread recieve from as a listener
 		//recvfrom waits for a recieved data

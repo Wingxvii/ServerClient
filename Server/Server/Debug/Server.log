@@ -1,2 +1,3 @@
-﻿  ServerNetwork.cpp
+﻿  main.cpp
+D:\Code\ServerClient\Server\Server\main.cpp(18): warning C4326: return type of 'main' should be 'int' instead of 'void'
   Server.vcxproj -> D:\Code\ServerClient\Server\Debug\Server.exe

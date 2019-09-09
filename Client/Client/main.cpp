@@ -14,6 +14,11 @@ int main() {
 	//init network
 	ClientNetwork net = ClientNetwork();
 
+	string index;
+	cout << "Input Index: ";
+	cin >> index;
+	net.setClientIndex(index);
+
 	//connect to default ip address
 	net.connect();
 
@@ -36,6 +41,7 @@ int main() {
 			clientIP = x;
 
 			cout << "Message Recieved from " << clientIP << " : " << message << endl;
+			net.inQueue.pop();
 		}
 	}
 

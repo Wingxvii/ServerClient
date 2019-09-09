@@ -17,6 +17,7 @@ bool running = true;
 
 void main() {
 
+
 	//1: Start Winsock
 	WSADATA data;
 	WORD version = MAKEWORD(2, 2);
@@ -55,7 +56,7 @@ void main() {
 		}
 		
 		if (buf[0] == '1') {
-			string s = "0Recieved";
+			string s = "Recieved";
 
 			int sendOK = sendto(in, s.c_str(), s.size() + 1, 0, (sockaddr*)& serverHint, clientLength);
 			if (sendOK == SOCKET_ERROR) {
