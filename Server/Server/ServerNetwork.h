@@ -16,12 +16,21 @@ public:
 	ServerNetwork();
 	~ServerNetwork();
 
+	SOCKET in;
+	sockaddr_in serverHint;
+
+	queue<char*> inQueue = queue<char*>();
+
+	char buf[MAX_PACKET_SIZE];
+
+	int clientLength;
 
 public:
 	bool acceptNewClient(unsigned int& id);
+	void startListening();
 	int receiveData(unsigned int client_id, char* recvbuf);
-	void sendToAll(char* packets, int totalSize);
-	void sendTo(char* packets, int totalSize, int clientID);
+	void sendToAll(string message, int totalSize);
+	void sendTo(string message, int totalSize, int clientID);
 
 };
 
