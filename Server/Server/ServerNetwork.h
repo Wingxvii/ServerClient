@@ -3,9 +3,10 @@
 #include <iostream>
 #include <thread>
 #include <queue>
+#include "Packet.h"
 
 #pragma comment (lib, "ws2_32.lib")
-#define MAX_PACKET_SIZE 10000
+
 
 using namespace std;
 
@@ -14,6 +15,8 @@ struct UserProfile {
 	string Username;
 	sockaddr_in clientAddress;
 	string clientIP;
+	int clientLength;
+
 };
 
 #pragma once
@@ -25,18 +28,17 @@ public:
 
 	SOCKET in;
 	sockaddr_in serverHint;
-
-	queue<char*> inQueue;
-
-	char buf[MAX_PACKET_SIZE];
-
 	int clientLength;
+
+	vector<Packet> inQueue;
+
+	int clientCount = 0;
 
 	std::vector<UserProfile> ConnectedUsers;
 
 public:
 	//accept and save new socket
-	bool acceptNewClient();
+	void acceptNewClient(sockaddr_in address, int length);
 	//begin listening to input signals
 	void startListening();
 
@@ -44,9 +46,6 @@ public:
 	void sendToAll(string message);
 	//send to sepific client
 	void sendTo(string message, int clientID);
-
-
-public:
 
 };
 

@@ -16,28 +16,18 @@ using namespace std;
 
 bool running = true;
 
-void main() {
+int main() {
 
 	ServerNetwork net = ServerNetwork();
 
 	net.startListening();
 	
-	thread print = thread([&]() {
-		while (true) {
-			while (!net.inQueue.empty()) {
-				char x = net.inQueue.back()[0];
-				string message = net.inQueue.back();
-				string s = "Recieved";
-				net.sendTo(s, 0);
-				cout << "Message Recieved from " << x << " : " << message << endl;
-
-				net.inQueue.pop();
-			}
+	//processing loop
+	thread process = thread([&]() {
+		while (running) {
 		}
 		});
-	print.detach();
-
-
+	process.detach();
 
 	//runtime loop
 	while (running) {
@@ -48,3 +38,4 @@ void main() {
 	WSACleanup();
 
 }
+

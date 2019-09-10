@@ -2,7 +2,7 @@
 
 Packet::Packet()
 {
-	char temp[DEFAULT_PACKET_SIZE] = { '0','0','0','0','0','0'};
+	char temp[DEFAULT_PACKET_SIZE] = { '0','0','0','0','0'};
 	*this = Packet(temp);
 }
 
@@ -13,42 +13,27 @@ Packet::Packet(char* dataIn)
 
 	index = atoi(indexChar);
 	type = (PacketType)atoi(typeChar);
-	size = (PacketSize)((int)dataIn[3]);
+	buf = new char[DEFAULT_PACKET_SIZE];
 
-	switch (size) {
-	case SIZE_DEFAULT:
-		buf = new char[DEFAULT_PACKET_SIZE];
-		break;
-	case SIZE_BIG:
-		buf = new char[LARGER_PACKET_SIZE];
-		break;
-	case SIZE_MAXIMUM:
-		buf = new char[MAX_PACKET_SIZE];
-		break;
-	}
-
-
-
-	strcpy(buf, dataIn + 5);
+	strcpy_s(buf, DEFAULT_PACKET_SIZE - 4, dataIn + 4);
 }
 
 
 Packet::~Packet()
 {
-	delete buf;
 }
 
 char* Packet::getPacketData()
 {
-	return nullptr;
+	return buf;
 }
 
-int Packet::getPacketType()
+PacketType Packet::getPacketType()
 {
-	return 0;
+	return type;
 }
 
 int Packet::getUserIndex()
 {
-	return 0;
+	return index;
 }

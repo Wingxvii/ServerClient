@@ -14,15 +14,9 @@ int main() {
 	//init network
 	ClientNetwork net = ClientNetwork();
 
-	string index;
-	cout << "Input Index: ";
-	cin >> index;
-	net.setClientIndex(index);
-
 	//connect to default ip address
 	net.connect();
 	net.startListening();
-
 
 	thread print = thread([&]() {
 		while (true) {
@@ -48,7 +42,6 @@ int main() {
 		cin >> s;
 
 		net.sendMessage(s);
-
 
 	}
 

@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Packet.cpp" />
     <ClCompile Include="ServerNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Packet.h" />
     <ClInclude Include="ServerNetwork.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

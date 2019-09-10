@@ -47,7 +47,6 @@ int ClientNetwork::connect(string ip)
 
 int ClientNetwork::sendMessage(string message)
 {
-	message = clientIndex + message;
 	int sendOK = sendto(client, message.c_str(), message.size() + 1, 0, (sockaddr*)& server, sizeof(server));
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
@@ -77,8 +76,3 @@ void ClientNetwork::startListening()
 }
 
 
-
-void ClientNetwork::setClientIndex(string index)
-{
-	clientIndex = index;
-}

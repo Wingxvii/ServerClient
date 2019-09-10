@@ -26,8 +26,6 @@ public:
 
 	queue<char*> inQueue = queue<char*>();
 
-	string clientIndex = "01"; //should be -1
-
 public:
 	int connect();
 	int connect(string ip);
@@ -35,8 +33,6 @@ public:
 	int sendMessage(string message);
 
 	void startListening();
-
-	void setClientIndex(string index);
 
 	//multithread recieve from as a listener
 		//recvfrom waits for a recieved data
