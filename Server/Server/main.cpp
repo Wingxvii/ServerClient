@@ -22,23 +22,26 @@ void main() {
 
 	net.startListening();
 	
+	thread print = thread([&]() {
+		while (true) {
+			while (!net.inQueue.empty()) {
+				char x = net.inQueue.back()[0];
+				string message = net.inQueue.back();
+				string s = "Recieved";
+				net.sendTo(s, 0, 0);
+				cout << "Message Recieved from " << x << " : " << message << endl;
+
+				net.inQueue.pop();
+			}
+		}
+		});
+	print.detach();
+
+
+
 	//runtime loop
 	while (running) {
 		//wait for message
-
-		while (!net.inQueue.empty()) {
-			char x = net.inQueue.back()[0];
-			string message = net.inQueue.back();
-			/*
-			if (x == '1') {
-				string s = "Recieved";
-				net.sendTo(s, 0, 0);
-			}
-			*/
-			cout << "Message Recieved from " << x << " : " << message << endl;
-
-			net.inQueue.pop();
-		}
 
 	}
 

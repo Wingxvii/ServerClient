@@ -43,12 +43,13 @@ bool ServerNetwork::acceptNewClient(unsigned int & id)
 void ServerNetwork::startListening()
 {
 	thread listen = thread([&]() {
-
-		if (recvfrom(in, buf, 1024, 0, (sockaddr*)& serverHint, &clientLength) == SOCKET_ERROR) {
-			cout << "Error reciving from client" << WSAGetLastError() << endl;
-		}
-		else {
-			inQueue.push(buf);
+		while (true) {
+			if (recvfrom(in, buf, 1024, 0, (sockaddr*)& serverHint, &clientLength) == SOCKET_ERROR) {
+				cout << "Error reciving from client" << WSAGetLastError() << endl;
+			}
+			else {
+				inQueue.push(buf);
+			}
 		}
 		});
 	listen.detach();

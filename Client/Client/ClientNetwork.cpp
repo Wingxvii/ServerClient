@@ -57,15 +57,25 @@ int ClientNetwork::sendMessage(string message)
 
 void ClientNetwork::startListening()
 {
+	/*
+	std::thread thread_name_here(&ClientNetwork::sendMessage, this, "1278.0.1");
+	thread_name_here.detach();
+	*/
+
 	thread listen = thread([&]() {
-		if (recvfrom(client, buf, 1024, 0, (sockaddr*)& server, &serverlength) == SOCKET_ERROR) {
-			cout << "Error reciving from server" << WSAGetLastError() << endl;
+		while (true) {
+			if (recvfrom(client, buf, 1024, 0, (sockaddr*)& server, &serverlength) == SOCKET_ERROR) {
+				//cout << "Error reciving from server" << WSAGetLastError() << endl;
+			}
+			else {
+				inQueue.push(buf);
+			}
 		}
-		else {
-			inQueue.push(buf);
-		}		
 		});
-	listen.detach();}
+	listen.detach();
+}
+
+
 
 void ClientNetwork::setClientIndex(string index)
 {
