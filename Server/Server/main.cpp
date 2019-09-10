@@ -28,7 +28,7 @@ void main() {
 				char x = net.inQueue.back()[0];
 				string message = net.inQueue.back();
 				string s = "Recieved";
-				net.sendTo(s, 0, 0);
+				net.sendTo(s, 0);
 				cout << "Message Recieved from " << x << " : " << message << endl;
 
 				net.inQueue.pop();
@@ -42,7 +42,6 @@ void main() {
 	//runtime loop
 	while (running) {
 		//wait for message
-
 	}
 
 	//close

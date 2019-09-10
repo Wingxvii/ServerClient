@@ -13,19 +13,13 @@ ServerNetwork::ServerNetwork()
 		cout << "cant start winsock" << wsOk;
 		return;
 	}
-
 	//UDP does not require input, where TCP does
-	in = socket(AF_INET, SOCK_DGRAM, 0);		//one of these for each client	//doesnt know when client disconnects	//make sure to send pings
-	//bind socket to ip address and port
-								//info about the client
-	serverHint.sin_addr.S_un.S_addr = ADDR_ANY;
-	serverHint.sin_family = AF_INET;
-	serverHint.sin_port = htons(54000); //convert from little to big endian
-	clientLength = sizeof(serverHint);
+	in = socket(AF_INET, SOCK_DGRAM, 0);		//doesnt know when client disconnects	//make sure to send pings
 
-	if (bind(in, (sockaddr*)& serverHint, sizeof(serverHint)) == SOCKET_ERROR) {
-		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
-	}
+	//initalization
+	ConnectedUsers = std::vector<UserProfile>();
+	inQueue = queue<char*>();
+
 
 }
 
@@ -35,8 +29,19 @@ ServerNetwork::~ServerNetwork()
 }
 
 // accept new connections
-bool ServerNetwork::acceptNewClient(unsigned int & id)
+bool ServerNetwork::acceptNewClient()
 {
+	//bind socket to ip address and port
+							//info about the client
+	serverHint.sin_addr.S_un.S_addr = ADDR_ANY;
+	serverHint.sin_family = AF_INET;
+	serverHint.sin_port = htons(54000); //convert from little to big endian
+	clientLength = sizeof(serverHint);
+
+	if (bind(in, (sockaddr*)& serverHint, sizeof(serverHint)) == SOCKET_ERROR) {
+		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
+	}
+
 	return false;
 }
 
@@ -56,20 +61,14 @@ void ServerNetwork::startListening()
 }
 
 
-// receive incoming data
-int ServerNetwork::receiveData(unsigned int client_id, char * recvbuf)
-{
-	return 0;
-}
-
 // send data to all clients
-void ServerNetwork::sendToAll(string message, int totalSize)
+void ServerNetwork::sendToAll(string message)
 {
 
 
 }
 
-void ServerNetwork::sendTo(string message, int totalSize, int clientID)
+void ServerNetwork::sendTo(string message, int clientID)
 {
 	int sendOK = sendto(in, message.c_str(), message.size() + 1, 0, (sockaddr*)& serverHint, clientLength);
 	if (sendOK == SOCKET_ERROR) {

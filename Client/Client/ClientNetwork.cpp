@@ -40,6 +40,7 @@ int ClientNetwork::connect(string ip)
 {
 	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
 
+
 	//ping and determine client index
 	return 0;
 }

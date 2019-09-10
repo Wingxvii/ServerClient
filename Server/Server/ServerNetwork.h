@@ -9,6 +9,13 @@
 
 using namespace std;
 
+struct UserProfile {
+	int index;
+	string Username;
+	sockaddr_in clientAddress;
+	string clientIP;
+};
+
 #pragma once
 class ServerNetwork
 {
@@ -19,18 +26,27 @@ public:
 	SOCKET in;
 	sockaddr_in serverHint;
 
-	queue<char*> inQueue = queue<char*>();
+	queue<char*> inQueue;
 
 	char buf[MAX_PACKET_SIZE];
 
 	int clientLength;
 
+	std::vector<UserProfile> ConnectedUsers;
+
 public:
-	bool acceptNewClient(unsigned int& id);
+	//accept and save new socket
+	bool acceptNewClient();
+	//begin listening to input signals
 	void startListening();
-	int receiveData(unsigned int client_id, char* recvbuf);
-	void sendToAll(string message, int totalSize);
-	void sendTo(string message, int totalSize, int clientID);
+
+	//send to all clients
+	void sendToAll(string message);
+	//send to sepific client
+	void sendTo(string message, int clientID);
+
+
+public:
 
 };
 
