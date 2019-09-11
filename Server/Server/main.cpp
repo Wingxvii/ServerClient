@@ -22,13 +22,6 @@ int main() {
 
 	net.startListening();
 	
-	//processing loop
-	thread process = thread([&]() {
-		while (running) {
-		}
-		});
-	process.detach();
-
 	//runtime loop
 	while (running) {
 		//wait for message

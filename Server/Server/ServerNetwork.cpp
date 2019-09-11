@@ -59,7 +59,7 @@ void ServerNetwork::acceptNewClient(sockaddr_in address, int length)
 	acknowledgement.append(to_string(newProfile.index));
 	sendTo(acknowledgement, newProfile.index);
 
-	cout << "Client Accepted";
+	cout << "Client Accepted" << endl;
 }
 
 void ServerNetwork::startListening()
@@ -86,7 +86,7 @@ void ServerNetwork::startListening()
 					acceptNewClient(pack.source, pack.sourceLength);
 					break;
 				case PacketType::MESSAGE:			//string data 
-					cout << "Message Recieved from " << to_string(ConnectedUsers[pack.getUserIndex()].index) << " : " << pack.getPacketData() << endl;
+					cout << "Message Recieved from " << to_string(ConnectedUsers[pack.getUserIndex()-1].index) << " : " << pack.getPacketData() << endl;
 					break;
 				}
 			}
