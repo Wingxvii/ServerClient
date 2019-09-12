@@ -16,32 +16,13 @@ int main() {
 
 	//connect to default ip address
 	net.connect();
-	net.startListening();
-
-	thread print = thread([&]() {
-		while (true) {
-			while (!net.inQueue.empty()) {
-				char x = net.inQueue.back()[0];
-				string message = net.inQueue.back();
-
-				string clientIP;
-				clientIP = x;
-
-				cout << "Message Recieved from " << clientIP << " : " << message << endl;
-				net.inQueue.pop();
-			}
-		}
-		});
-	print.detach();
-
+	net.startUpdates();
 
 
 	while (true) {
-		//write out to that socket
 		string s;
 		cin >> s;
-
-		net.sendMessage(s);
+		net.sendMessage(MESSAGE, s);
 
 	}
 

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <thread>
 #include <queue>
+#include "Packet.h"
+#include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
 #define MAX_PACKET_SIZE 10000
@@ -16,27 +18,23 @@ public:
 	ClientNetwork();
 	~ClientNetwork();
 
+	SOCKET client;
 	sockaddr_in server;
 	int serverlength;
 
-	SOCKET client;
+	vector<std::vector<std::string>> connectionsIn;
+	vector<std::vector<std::string>> messagesIn;
 
+	//client details
 	string addressDefault = "127.0.0.1";
-	char buf[MAX_PACKET_SIZE];
-
-	queue<char*> inQueue = queue<char*>();
+	int index = 0;
 
 public:
 	int connect();
 	int connect(string ip);
 
-	int sendMessage(string message);
+	void startUpdates();
+	int sendMessage(int packetType, string message);
 
-	void startListening();
-
-	//multithread recieve from as a listener
-		//recvfrom waits for a recieved data
-		//when data is recieved, push to processing queue, then call self
-		//while queue has data, return to process
 };
 

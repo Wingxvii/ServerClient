@@ -1,9 +1,5 @@
 #include "ClientNetwork.h"
 
-void listenToServer() {
-
-}
-
 ClientNetwork::ClientNetwork()
 {
 	//1: Start Winsock
@@ -24,6 +20,11 @@ ClientNetwork::ClientNetwork()
 
 	//3. setup socket
 	client = socket(AF_INET, SOCK_DGRAM, 0);
+
+	//initalization
+	connectionsIn = vector<std::vector<std::string>>();
+	messagesIn = vector<std::vector<std::string>>();
+
 }
 
 ClientNetwork::~ClientNetwork()
@@ -39,15 +40,25 @@ int ClientNetwork::connect()
 int ClientNetwork::connect(string ip)
 {
 	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
-
-
+	//init message
+	sendMessage(INIT_CONNECTION, "");
 	//ping and determine client index
 	return 0;
 }
 
-int ClientNetwork::sendMessage(string message)
+int ClientNetwork::sendMessage(int packetType, string message)
 {
-	int sendOK = sendto(client, message.c_str(), message.size() + 1, 0, (sockaddr*)& server, sizeof(server));
+	Packet packet;
+	strcpy_s(packet.data, message.c_str() + '\0');
+	packet.packet_type = packetType;
+	packet.sender = index;
+
+	const unsigned int packet_size = sizeof(packet);
+	char packet_data[packet_size];
+
+	packet.serialize(packet_data);
+
+	int sendOK = sendto(client, packet_data, packet_size, 0, (sockaddr*)& server, sizeof(server));
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 		return -1;
@@ -55,7 +66,7 @@ int ClientNetwork::sendMessage(string message)
 	return sendOK;
 }
 
-void ClientNetwork::startListening()
+void ClientNetwork::startUpdates()
 {
 	/*
 	std::thread thread_name_here(&ClientNetwork::sendMessage, this, "1278.0.1");
@@ -63,14 +74,69 @@ void ClientNetwork::startListening()
 	*/
 
 	thread listen = thread([&]() {
+		char* buf = new char[DEFAULT_PACKET_SIZE];
+
 		while (true) {
-			if (recvfrom(client, buf, 1024, 0, (sockaddr*)& server, &serverlength) == SOCKET_ERROR) {
-				//cout << "Error reciving from server" << WSAGetLastError() << endl;
+			//recieve messages
+			int length = recvfrom(client, buf, DEFAULT_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
+			if (length != SOCKET_ERROR) {
+				Packet packet;
+				std::vector<std::string> parsedData;
+
+				int i = 0;
+				while (i < (unsigned int)length) {
+					packet.deserialize(&(buf[i]));
+					i += sizeof(Packet);
+					parsedData = Tokenizer::tokenize(',', packet.data);
+					parsedData.insert(parsedData.begin(), to_string(packet.sender));
+
+					switch (packet.packet_type) {
+					case PacketType::INIT_CONNECTION:
+						connectionsIn.push_back(parsedData);
+						break;
+					case PacketType::MESSAGE:			
+						messagesIn.push_back(parsedData);
+						break;
+					}
+				}
 			}
-			else {
-				inQueue.push(buf);
+
+			//process connections
+			for (std::vector<std::string> parsedData : connectionsIn) {
+				int sender = std::stoi(parsedData[0]);
+
+				//filter by sender
+				if (sender == 0) {
+					index = std::stof(parsedData[1]);
+				}
+				else {
+					//do nothing
+				}
 			}
+			connectionsIn.clear();
+			//process messages
+			for (std::vector<std::string> parsedData : messagesIn) {
+				int sender = std::stoi(parsedData[0]);
+
+				//filter by sender
+				if (sender == 0) {
+					string message = "";
+					for (int counter = 1; counter < parsedData.size(); counter++){
+						message = message + parsedData[counter];
+					}
+					cout << "Message Recieved from Server :" << message << endl;
+				}
+				else {
+					string message = "";
+					for (int counter = 1; counter < parsedData.size(); counter++) {
+						message = message + parsedData[counter];
+					}
+					cout << "Message Recieved from Client"<< parsedData[0] << " :" << message << endl;
+				}
+			}
+			messagesIn.clear();
 		}
+
 		});
 	listen.detach();
 }

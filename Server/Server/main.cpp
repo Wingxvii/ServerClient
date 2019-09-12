@@ -20,11 +20,12 @@ int main() {
 
 	ServerNetwork net = ServerNetwork();
 
-	net.startListening();
+	net.startUpdates();
 	
 	//runtime loop
 	while (running) {
 		//wait for message
+		//send command
 	}
 
 	//close

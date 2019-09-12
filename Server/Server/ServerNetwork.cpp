@@ -26,8 +26,7 @@ ServerNetwork::ServerNetwork()
 
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
-	inQueue = vector<Packet>();
-	
+	messagesIn = vector<std::vector<std::string>>();
 }
 
 ServerNetwork::~ServerNetwork()
@@ -35,65 +34,86 @@ ServerNetwork::~ServerNetwork()
 	closesocket(in);
 }
 
-// accept new connections
-void ServerNetwork::acceptNewClient(sockaddr_in address, int length)
+void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length)
 {
-	UserProfile newProfile = UserProfile();
+	//processing must be done here
+	int sender = std::stoi(data[0]);
+	if (sender == 0) {
+		UserProfile newProfile = UserProfile();
+		newProfile.clientAddress = serverHint;
+		newProfile.clientLength = clientLength;
 
-	newProfile.clientAddress = address;
-	newProfile.clientLength = length;
+		if (clientCount < 99) {
+			clientCount++;
+			newProfile.index = clientCount;
+		}
+		char str[INET6_ADDRSTRLEN];
 
-	if (clientCount < 99) {
-		clientCount++;
-		newProfile.index = clientCount;
+		inet_ntop(AF_INET, &(newProfile.clientAddress.sin_addr), str, INET_ADDRSTRLEN);
+		newProfile.clientIP = str;
+		ConnectedUsers.push_back(newProfile);
+
+		//send acknowledgement message with user client index
+		sendTo(INIT_CONNECTION, to_string(newProfile.index), newProfile.index);
+		cout << "Client Accepted" << endl;
 	}
-	char str[INET6_ADDRSTRLEN];
-
-	inet_ntop(AF_INET, &(newProfile.clientAddress.sin_addr), str, INET_ADDRSTRLEN);
-	newProfile.clientIP = str;
-
-	ConnectedUsers.push_back(newProfile);
-	//send acknowledgement message with user client index
-
-	string acknowledgement = "00000";
-	acknowledgement.append(to_string(newProfile.index));
-	sendTo(acknowledgement, newProfile.index);
-
-	cout << "Client Accepted" << endl;
+	else {
+		cout << "Client Already Connected";
+	}
 }
 
-void ServerNetwork::startListening()
+void ServerNetwork::startUpdates()
 {
 	thread listen = thread([&]() {
 		char* buf = new char[DEFAULT_PACKET_SIZE];
 
 		while (true) {
-			if (recvfrom(in, buf, DEFAULT_PACKET_SIZE, 0, (sockaddr*)& serverHint, &clientLength) == SOCKET_ERROR) {
-				cout << "Error reciving from client" << WSAGetLastError() << endl;
-			}
-			else {
-				Packet newPacket = Packet(buf);
-				newPacket.source = serverHint;
-				newPacket.sourceLength = clientLength;
 
-				inQueue.push_back(newPacket);
-			}
+			int length = recvfrom(in, buf, DEFAULT_PACKET_SIZE, 0, (sockaddr*)& serverHint, &clientLength);
+			if (length != SOCKET_ERROR) {
+				Packet packet;
+				std::vector<std::string> parsedData;
 
-			for (Packet pack : inQueue) {
-				//filters by type
-				switch (pack.getPacketType()) {
-				case PacketType::INIT_CONNECTION:	//init connection for a new client connection
-					acceptNewClient(pack.source, pack.sourceLength);
-					break;
-				case PacketType::MESSAGE:			//string data 
-					cout << "Message Recieved from " << to_string(ConnectedUsers[pack.getUserIndex()-1].index) << " : " << pack.getPacketData() << endl;
-					break;
+				int i = 0;
+				while (i < (unsigned int)length) {
+					packet.deserialize(&(buf[i]));
+					i += sizeof(Packet);
+					parsedData = Tokenizer::tokenize(',', packet.data);
+					parsedData.insert(parsedData.begin(), to_string(packet.sender));
+
+					switch (packet.packet_type) {
+					case PacketType::INIT_CONNECTION:
+						acceptNewClient(parsedData, serverHint, clientLength);
+						break;
+					case PacketType::MESSAGE:
+						messagesIn.push_back(parsedData);
+						break;
+					}
 				}
 			}
-			//clears queue for next loop
-			inQueue.clear();
 
 
+			//process messages
+			for (std::vector<std::string> parsedData : messagesIn) {
+				int sender = std::stoi(parsedData[0]);
+
+				//filter by sender
+				if (sender == 0) {
+					string message = "";
+					for (int counter = 1; counter < parsedData.size(); counter++) {
+						message = message + parsedData[counter];
+					}
+					cout << "Message Recieved from Server :" << message << endl;
+				}
+				else {
+					string message = "";
+					for (int counter = 1; counter < parsedData.size(); counter++) {
+						message = message + parsedData[counter];
+					}
+					cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
+				}
+			}
+			messagesIn.clear();
 
 		}
 		});
@@ -102,19 +122,39 @@ void ServerNetwork::startListening()
 
 
 // send data to all clients
-void ServerNetwork::sendToAll(string message)
+void ServerNetwork::sendToAll(int packetType, string message)
 {
 	for (UserProfile client : ConnectedUsers) {
-		int sendOK = sendto(in, message.c_str(), DEFAULT_PACKET_SIZE, 0, (sockaddr*)& client.clientAddress, client.clientLength);
+		Packet packet;
+		strcpy_s(packet.data, message.c_str() + '\0');
+		packet.packet_type = packetType;
+		packet.sender = 0;
+
+		const unsigned int packet_size = sizeof(packet);
+		char packet_data[packet_size];
+
+		packet.serialize(packet_data);
+
+		int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& client.clientAddress, client.clientLength);
 		if (sendOK == SOCKET_ERROR) {
 			cout << "Send Error: " << WSAGetLastError() << endl;
 		}
 	}
 }
 
-void ServerNetwork::sendTo(string message, int clientID)
+void ServerNetwork::sendTo(int packetType, string message, int clientID)
 {
-	int sendOK = sendto(in, message.c_str(), DEFAULT_PACKET_SIZE, 0, (sockaddr*)& ConnectedUsers[clientID-1].clientAddress, ConnectedUsers[clientID-1].clientLength);
+	Packet packet;
+	strcpy_s(packet.data, message.c_str() + '\0');
+	packet.packet_type = packetType;
+	packet.sender = 0;
+
+	const unsigned int packet_size = sizeof(packet);
+	char packet_data[packet_size];
+
+	packet.serialize(packet_data);
+
+	int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[clientID - 1].clientAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 	}

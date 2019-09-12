@@ -4,9 +4,9 @@
 #include <thread>
 #include <queue>
 #include "Packet.h"
+#include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
-
 
 using namespace std;
 
@@ -16,7 +16,6 @@ struct UserProfile {
 	sockaddr_in clientAddress;
 	string clientIP;
 	int clientLength;
-
 };
 
 #pragma once
@@ -30,7 +29,7 @@ public:
 	sockaddr_in serverHint;
 	int clientLength;
 
-	vector<Packet> inQueue;
+	vector<std::vector<std::string>> messagesIn;
 
 	int clientCount = 0;
 
@@ -38,14 +37,14 @@ public:
 
 public:
 	//accept and save new socket
-	void acceptNewClient(sockaddr_in address, int length);
+	void acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length);
 	//begin listening to input signals
-	void startListening();
+	void startUpdates();
 
 	//send to all clients
-	void sendToAll(string message);
+	void sendToAll(int packetType, string message);
 	//send to sepific client
-	void sendTo(string message, int clientID);
+	void sendTo(int packetType, string message, int clientID);
 
 };
 
