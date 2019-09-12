@@ -9,7 +9,6 @@ using namespace std;
 
 #pragma comment (lib, "ws2_32.lib")
 
-#define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "6883" 
 
 using namespace std;

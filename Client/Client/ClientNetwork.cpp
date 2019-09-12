@@ -41,7 +41,7 @@ int ClientNetwork::connect(string ip)
 {
 	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
 	//init message
-	sendMessage(INIT_CONNECTION, "");
+	sendMessage(INIT_CONNECTION, "0");
 	//ping and determine client index
 	return 0;
 }
@@ -74,11 +74,11 @@ void ClientNetwork::startUpdates()
 	*/
 
 	thread listen = thread([&]() {
-		char* buf = new char[DEFAULT_PACKET_SIZE];
+		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (true) {
 			//recieve messages
-			int length = recvfrom(client, buf, DEFAULT_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
+			int length = recvfrom(client, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
 				std::vector<std::string> parsedData;

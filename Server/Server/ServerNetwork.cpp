@@ -65,11 +65,14 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 void ServerNetwork::startUpdates()
 {
 	thread listen = thread([&]() {
-		char* buf = new char[DEFAULT_PACKET_SIZE];
+		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (true) {
+			int length = recvfrom(in, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverHint, &clientLength);
+			if (length == SOCKET_ERROR) {
+				cout << "Recieve Error: " << WSAGetLastError() << endl;
+			}
 
-			int length = recvfrom(in, buf, DEFAULT_PACKET_SIZE, 0, (sockaddr*)& serverHint, &clientLength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
 				std::vector<std::string> parsedData;
@@ -88,10 +91,11 @@ void ServerNetwork::startUpdates()
 					case PacketType::MESSAGE:
 						messagesIn.push_back(parsedData);
 						break;
+					default:
+						break;
 					}
 				}
 			}
-
 
 			//process messages
 			for (std::vector<std::string> parsedData : messagesIn) {

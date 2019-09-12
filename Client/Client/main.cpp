@@ -3,8 +3,6 @@
 #include <string>
 #include "ClientNetwork.h"
 #pragma comment (lib, "ws2_32.lib")
-#define MAX_PACKET_SIZE 10000
-
 using namespace std;
 
 bool running = true;
@@ -22,6 +20,9 @@ int main() {
 	while (true) {
 		string s;
 		cin >> s;
+
+		cout << "Hi";
+
 		net.sendMessage(MESSAGE, s);
 
 	}

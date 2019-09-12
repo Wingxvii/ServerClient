@@ -1,5 +1,6 @@
 #pragma once
-#define DEFAULT_PACKET_SIZE 1024
+#define MAX_PACKET_SIZE 10000
+#define DEFAULT_DATA_SIZE 512
 
 #include <stdio.h>
 #include <stdlib.h>   
@@ -22,7 +23,7 @@ struct Packet {
 
 	unsigned int packet_type;
 	unsigned int sender = 0;
-	char data[DEFAULT_PACKET_SIZE];
+	char data[DEFAULT_DATA_SIZE];
 
 	void serialize(char* data) {
 		memcpy(data, this, sizeof(Packet));

@@ -7,7 +7,6 @@
 #include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
-#define MAX_PACKET_SIZE 10000
 
 using namespace std;
 
