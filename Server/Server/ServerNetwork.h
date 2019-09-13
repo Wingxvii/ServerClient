@@ -45,6 +45,7 @@ public:
 	void sendToAll(int packetType, string message);
 	//send to sepific client
 	void sendTo(int packetType, string message, int clientID);
-
+	//send to all except a client
+	void sendToAllExcept(int packetType, string message, int clientID);
 };
 

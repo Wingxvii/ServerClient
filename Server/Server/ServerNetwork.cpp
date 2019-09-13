@@ -115,6 +115,8 @@ void ServerNetwork::startUpdates()
 						message = message + parsedData[counter];
 					}
 					cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
+					
+					sendToAll(MESSAGE, message);
 				}
 			}
 			messagesIn.clear();
@@ -167,5 +169,31 @@ void ServerNetwork::sendTo(int packetType, string message, int clientID)
 	int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[clientID - 1].clientAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
+	}
+}
+
+void ServerNetwork::sendToAllExcept(int packetType, string message, int clientID)
+{
+	//include for tokenizer
+	message = message + ",";
+
+	for (int counter = 0; counter < ConnectedUsers.size();counter++ ) {
+		if (counter+1 == clientID) {
+			continue;
+		}
+		Packet packet;
+		strcpy_s(packet.data, message.c_str() + '\0');
+		packet.packet_type = packetType;
+		packet.sender = 0;
+
+		const unsigned int packet_size = sizeof(packet);
+		char packet_data[packet_size];
+
+		packet.serialize(packet_data);
+
+		int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[counter].clientAddress, ConnectedUsers[counter].clientLength);
+		if (sendOK == SOCKET_ERROR) {
+			cout << "Send Error: " << WSAGetLastError() << endl;
+		}
 	}
 }
