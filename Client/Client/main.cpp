@@ -12,13 +12,18 @@ int main() {
 	//init network
 	ClientNetwork net = ClientNetwork();
 
+	string ip;
+	cout << "Address:";
+	cin >> ip;
+
 	//connect to default ip address
-	net.connect();
+	net.connect(ip);
 	net.startUpdates();
 
 
 	while (true) {
 		string s;
+		cout << "==>";
 		cin >> s;
 
 		net.sendMessage(MESSAGE, s);
