@@ -16,7 +16,6 @@ enum PacketType {
 	//single string
 	MESSAGE = 1,
 
-
 };
 
 struct Packet {

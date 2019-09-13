@@ -114,7 +114,7 @@ void ServerNetwork::startUpdates()
 					for (int counter = 1; counter < parsedData.size(); counter++) {
 						message = message + parsedData[counter];
 					}
-					cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
+					cout << "Message Recieved from Client " << parsedData[0] << " :" << message << endl;
 					
 					//relay
 					relay(MESSAGE, message, sender);
