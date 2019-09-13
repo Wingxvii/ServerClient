@@ -116,7 +116,8 @@ void ServerNetwork::startUpdates()
 					}
 					cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
 					
-					sendToAll(MESSAGE, message);
+					//relay
+					relay(MESSAGE, message, sender);
 				}
 			}
 			messagesIn.clear();
@@ -172,7 +173,7 @@ void ServerNetwork::sendTo(int packetType, string message, int clientID)
 	}
 }
 
-void ServerNetwork::sendToAllExcept(int packetType, string message, int clientID)
+void ServerNetwork::relay(int packetType, string message, int clientID)
 {
 	//include for tokenizer
 	message = message + ",";
@@ -184,7 +185,7 @@ void ServerNetwork::sendToAllExcept(int packetType, string message, int clientID
 		Packet packet;
 		strcpy_s(packet.data, message.c_str() + '\0');
 		packet.packet_type = packetType;
-		packet.sender = 0;
+		packet.sender = clientID;
 
 		const unsigned int packet_size = sizeof(packet);
 		char packet_data[packet_size];

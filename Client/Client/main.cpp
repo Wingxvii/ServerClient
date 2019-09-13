@@ -23,7 +23,6 @@ int main() {
 
 	while (true) {
 		string s;
-		cout << "==>";
 		cin >> s;
 
 		net.sendMessage(MESSAGE, s);
