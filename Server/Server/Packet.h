@@ -1,5 +1,5 @@
 #pragma once
-#define MAX_PACKET_SIZE 10000
+#define MAX_PACKET_SIZE 100000
 #define DEFAULT_DATA_SIZE 512
 
 #include <stdio.h>

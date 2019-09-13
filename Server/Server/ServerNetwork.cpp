@@ -128,6 +128,9 @@ void ServerNetwork::startUpdates()
 // send data to all clients
 void ServerNetwork::sendToAll(int packetType, string message)
 {
+	//include for tokenizer
+	message = message + ",";
+
 	for (UserProfile client : ConnectedUsers) {
 		Packet packet;
 		strcpy_s(packet.data, message.c_str() + '\0');
@@ -148,6 +151,9 @@ void ServerNetwork::sendToAll(int packetType, string message)
 
 void ServerNetwork::sendTo(int packetType, string message, int clientID)
 {
+	//include for tokenizer
+	message = message + ",";
+
 	Packet packet;
 	strcpy_s(packet.data, message.c_str() + '\0');
 	packet.packet_type = packetType;

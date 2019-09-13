@@ -49,6 +49,7 @@ int ClientNetwork::connect(string ip)
 int ClientNetwork::sendMessage(int packetType, string message)
 {
 	Packet packet;
+	message = message + ",";
 	strcpy_s(packet.data, message.c_str() + '\0');
 	packet.packet_type = packetType;
 	packet.sender = index;

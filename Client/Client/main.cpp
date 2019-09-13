@@ -21,10 +21,7 @@ int main() {
 		string s;
 		cin >> s;
 
-		cout << "Hi";
-
 		net.sendMessage(MESSAGE, s);
-
 	}
 
 
