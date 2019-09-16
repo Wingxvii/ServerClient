@@ -17,7 +17,13 @@ int main() {
 	cin >> ip;
 
 	//connect to default ip address
-	net.connect(ip);
+	if (ip == "0") {
+		net.connect();
+	}
+	else {
+		net.connect(ip);
+	}
+
 	net.startUpdates();
 
 
@@ -25,7 +31,7 @@ int main() {
 		string s;
 		cin >> s;
 
-		net.sendMessage(MESSAGE, s);
+		net.sendMessage(s);
 	}
 
 

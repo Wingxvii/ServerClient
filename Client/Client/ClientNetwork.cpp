@@ -41,24 +41,27 @@ int ClientNetwork::connect(string ip)
 {
 	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
 	//init message
-	sendMessage(INIT_CONNECTION, "0");
+	sendData(INIT_CONNECTION, "0");
 	//ping and determine client index
 	return 0;
 }
 
-int ClientNetwork::sendMessage(int packetType, string message)
+int ClientNetwork::sendData(int packetType, string message)
 {
+	//create packet
 	Packet packet;
-	message = message + ",";
 	strcpy_s(packet.data, message.c_str() + '\0');
 	packet.packet_type = packetType;
 	packet.sender = index;
 
+	//set size
 	const unsigned int packet_size = sizeof(packet);
 	char packet_data[packet_size];
 
+	//seralize
 	packet.serialize(packet_data);
 
+	//send to server
 	int sendOK = sendto(client, packet_data, packet_size, 0, (sockaddr*)& server, sizeof(server));
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
@@ -140,6 +143,13 @@ void ClientNetwork::startUpdates()
 
 		});
 	listen.detach();
+}
+
+int ClientNetwork::sendMessage(string message)
+{
+	message = message + ",";
+
+	return sendData(MESSAGE, message);
 }
 
 

@@ -33,7 +33,11 @@ public:
 	int connect(string ip);
 
 	void startUpdates();
-	int sendMessage(int packetType, string message);
+	int sendData(int packetType, string message);
+
+	//data send wrappers
+	int sendMessage(string message);
+
 
 };
 

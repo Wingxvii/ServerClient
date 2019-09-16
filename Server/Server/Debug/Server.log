@@ -3,4 +3,6 @@ D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(81): warning C4018: '<': si
 D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(107): warning C4018: '<': signed/unsigned mismatch
 D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(114): warning C4018: '<': signed/unsigned mismatch
 D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(181): warning C4018: '<': signed/unsigned mismatch
+  main.cpp
+  Generating Code...
   Server.vcxproj -> D:\Code\ServerClient\Server\Debug\Server.exe
