@@ -21,12 +21,10 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ClientNetwork.cpp" />
-    <ClCompile Include="Tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ClientNetwork.h" />
     <ClInclude Include="Packet.h" />
-    <ClInclude Include="Tokenizer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

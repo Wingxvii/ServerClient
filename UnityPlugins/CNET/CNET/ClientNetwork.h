@@ -47,11 +47,22 @@ public:
 
 };
 
+struct temp {
+	string x = "";
+};
+
 extern "C" {
 	//shared methods here
 	CNET_H int Add(int a, int b);
+	CNET_H void RecieveString(const char* str);
+	CNET_H void SendString(char* str, int length);
+
+
 	CNET_H ClientNetwork* CreateClient();
-	CNET_H void* DeleteClient(ClientNetwork* client);
-	CNET_H string SendString(string x);
+	CNET_H void DeleteClient(ClientNetwork* client);
+	CNET_H int Connect(char* ip, ClientNetwork* client);
+
+
+	CNET_H void SendMsg(char* ip, ClientNetwork* client);
 
 }

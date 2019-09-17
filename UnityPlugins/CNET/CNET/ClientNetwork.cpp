@@ -6,19 +6,51 @@ CNET_H int Add(int a, int b) {
 }
 //need wrappers for everything
 
-CNET_H string SendString(string x) {
-	return x + "Recieved";
+CNET_H void RecieveString(const char* str) {
+	string y = string(str);
+	y += "Recieved ";
 }
+
+CNET_H void SendString(char* str, int length)
+{
+	string x = "hello";
+	strcpy_s(str, length, x.c_str());
+}
+
+/*
+Client Side Function Wrappers Start Now
+############################################################
+*/
+
 
 //constructor wrapper
 CNET_H ClientNetwork* CreateClient() {
 	return new ClientNetwork();
 }
-
 //destructor wrapper
-CNET_H void* DeleteClient(ClientNetwork* client) {
+CNET_H void DeleteClient(ClientNetwork* client) {
 	delete client;
 }
+//connection
+CNET_H int Connect(char* ip, ClientNetwork* client)
+{
+	string _ip = string(ip);
+	client->connect(_ip);
+}
+
+CNET_H void SendMsg(char* message, ClientNetwork* client)
+{
+	client->sendMessage(message);
+}
+
+
+
+
+
+/*
+Client Network Functions Start Now
+############################################################
+*/
 
 ClientNetwork::ClientNetwork()
 {
