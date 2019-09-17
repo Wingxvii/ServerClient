@@ -52,5 +52,6 @@ extern "C" {
 	CNET_H int Add(int a, int b);
 	CNET_H ClientNetwork* CreateClient();
 	CNET_H void* DeleteClient(ClientNetwork* client);
+	CNET_H string SendString(string x);
 
 }

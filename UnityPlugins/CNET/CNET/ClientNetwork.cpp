@@ -6,12 +6,21 @@ CNET_H int Add(int a, int b) {
 }
 //need wrappers for everything
 
+CNET_H string SendString(string x) {
+	return x + "Recieved";
+}
+
 //constructor wrapper
 CNET_H ClientNetwork* CreateClient() {
 	return new ClientNetwork();
 }
 
-CNET_H ClientNetwork::ClientNetwork()
+//destructor wrapper
+CNET_H void* DeleteClient(ClientNetwork* client) {
+	delete client;
+}
+
+ClientNetwork::ClientNetwork()
 {
 	//1: Start Winsock
 	WSADATA data;
@@ -36,11 +45,6 @@ CNET_H ClientNetwork::ClientNetwork()
 	connectionsIn = vector<std::vector<std::string>>();
 	messagesIn = vector<std::vector<std::string>>();
 
-}
-
-//destructor wrapper
-CNET_H void* DeleteClient(ClientNetwork* client) {
-	delete client;
 }
 
 ClientNetwork::~ClientNetwork()
