@@ -77,6 +77,7 @@ void ClientNetwork::startUpdates()
 	thread_name_here.detach();
 	*/
 
+	//multithread
 	thread listen = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
@@ -91,7 +92,7 @@ void ClientNetwork::startUpdates()
 				while (i < (unsigned int)length) {
 					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
-					parsedData = Tokenizer::tokenize(',', packet.data);
+					parsedData = tokenize(',', packet.data);
 					parsedData.insert(parsedData.begin(), to_string(packet.sender));
 
 					switch (packet.packet_type) {
@@ -152,4 +153,17 @@ int ClientNetwork::sendMessage(string message)
 	return sendData(MESSAGE, message);
 }
 
+std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
+{
+	std::vector<std::string> temp;
+	int lastTokenLocation = 0;
 
+	for (int i = 0; i < text.size(); i++) {
+		if (text[i] == token) {
+			temp.push_back(text.substr(lastTokenLocation, i - lastTokenLocation));
+			lastTokenLocation = i + 1;
+
+		}
+	}
+	return temp;
+}

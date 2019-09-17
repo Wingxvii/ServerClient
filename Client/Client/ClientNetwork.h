@@ -35,6 +35,9 @@ public:
 	void startUpdates();
 	int sendData(int packetType, string message);
 
+	//tokenizes into string vects
+	static std::vector<std::string> tokenize(char token, std::string text);
+
 	//data send wrappers
 	int sendMessage(string message);
 

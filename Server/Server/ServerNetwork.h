@@ -7,6 +7,7 @@
 #include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
+#define DEFAULT_PORT "6883" 
 
 using namespace std;
 

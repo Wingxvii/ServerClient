@@ -2,7 +2,7 @@
 #include <ws2tcpip.h>
 #include <string>
 #include "ClientNetwork.h"
-#pragma comment (lib, "ws2_32.lib")
+
 using namespace std;
 
 bool running = true;
