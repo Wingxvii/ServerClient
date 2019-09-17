@@ -1,6 +1,17 @@
 #include "ClientNetwork.h"
 
-ClientNetwork::ClientNetwork()
+//test function
+CNET_H int Add(int a, int b) {
+	return a + b;
+}
+//need wrappers for everything
+
+//constructor wrapper
+CNET_H ClientNetwork* CreateClient() {
+	return new ClientNetwork();
+}
+
+CNET_H ClientNetwork::ClientNetwork()
 {
 	//1: Start Winsock
 	WSADATA data;
@@ -25,6 +36,11 @@ ClientNetwork::ClientNetwork()
 	connectionsIn = vector<std::vector<std::string>>();
 	messagesIn = vector<std::vector<std::string>>();
 
+}
+
+//destructor wrapper
+CNET_H void* DeleteClient(ClientNetwork* client) {
+	delete client;
 }
 
 ClientNetwork::~ClientNetwork()

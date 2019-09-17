@@ -4,7 +4,6 @@
 #include <thread>
 #include <queue>
 #include "Packet.h"
-#include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
 

@@ -1,10 +1,13 @@
+#pragma once
+
+#define CNET_H _declspec(dllexport)
+
 #include <ws2tcpip.h>
 #include <string>
 #include <iostream>
 #include <thread>
 #include <queue>
 #include "Packet.h"
-#include "Tokenizer.h"
 
 #pragma comment (lib, "ws2_32.lib")
 
@@ -44,3 +47,10 @@ public:
 
 };
 
+extern "C" {
+	//shared methods here
+	CNET_H int Add(int a, int b);
+	CNET_H ClientNetwork* CreateClient();
+	CNET_H void* DeleteClient(ClientNetwork* client);
+
+}

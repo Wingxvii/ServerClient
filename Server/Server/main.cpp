@@ -1,6 +1,4 @@
 #include <iostream>
-#include <iostream>
-#include <WS2tcpip.h>
 #include <map>
 #include <vector> 
 #include "ServerNetwork.h"

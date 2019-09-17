@@ -1,5 +1,4 @@
 #include <iostream>
-#include <ws2tcpip.h>
 #include <string>
 #include "ClientNetwork.h"
 
