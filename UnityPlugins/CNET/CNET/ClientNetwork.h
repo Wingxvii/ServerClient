@@ -52,17 +52,21 @@ struct temp {
 };
 
 extern "C" {
+	//message action
+	void (*recievePacket)(int type, int sender, char* data);
+
+
 	//shared methods here
 	CNET_H int Add(int a, int b);
-	CNET_H void RecieveString(const char* str);
-	CNET_H void SendString(char* str, int length);
+	CNET_H void RecieveString(const char* str);		//this is send
+	CNET_H void SendString(char* str, int length);	//this is recieve
 
 
 	CNET_H ClientNetwork* CreateClient();
 	CNET_H void DeleteClient(ClientNetwork* client);
 	CNET_H int Connect(char* ip, ClientNetwork* client);
-
+	CNET_H void StartUpdating(ClientNetwork* client);
 
 	CNET_H void SendMsg(char* ip, ClientNetwork* client);
-
+	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 }

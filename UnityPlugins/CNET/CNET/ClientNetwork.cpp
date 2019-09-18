@@ -17,6 +17,7 @@ CNET_H void SendString(char* str, int length)
 	strcpy_s(str, length, x.c_str());
 }
 
+
 /*
 Client Side Function Wrappers Start Now
 ############################################################
@@ -38,12 +39,20 @@ CNET_H int Connect(char* ip, ClientNetwork* client)
 	client->connect(_ip);
 }
 
+CNET_H void StartUpdating(ClientNetwork* client)
+{
+	client->startUpdates();
+}
+
 CNET_H void SendMsg(char* message, ClientNetwork* client)
 {
 	client->sendMessage(message);
 }
 
-
+CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
+{
+	recievePacket = action;
+}
 
 
 
@@ -134,6 +143,8 @@ void ClientNetwork::startUpdates()
 		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (true) {
+
+			
 			//recieve messages
 			int length = recvfrom(client, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
 			if (length != SOCKET_ERROR) {
@@ -144,20 +155,19 @@ void ClientNetwork::startUpdates()
 				while (i < (unsigned int)length) {
 					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
-					parsedData = tokenize(',', packet.data);
-					parsedData.insert(parsedData.begin(), to_string(packet.sender));
 
-					switch (packet.packet_type) {
-					case PacketType::INIT_CONNECTION:
+					//process connections in dll
+					if (packet.packet_type == PacketType::INIT_CONNECTION) {
+						parsedData = tokenize(',', packet.data);
+						parsedData.insert(parsedData.begin(), to_string(packet.sender));
 						connectionsIn.push_back(parsedData);
-						break;
-					case PacketType::MESSAGE:			
-						messagesIn.push_back(parsedData);
-						break;
+					}
+					//process everything else in unity
+					else {
+						recievePacket(packet.packet_type, packet.sender, packet.data);
 					}
 				}
 			}
-
 			//process connections
 			for (std::vector<std::string> parsedData : connectionsIn) {
 				int sender = std::stoi(parsedData[0]);
@@ -171,6 +181,10 @@ void ClientNetwork::startUpdates()
 				}
 			}
 			connectionsIn.clear();
+
+			//messages are processed in #
+			
+			/*
 			//process messages
 			for (std::vector<std::string> parsedData : messagesIn) {
 				int sender = std::stoi(parsedData[0]);
@@ -192,8 +206,8 @@ void ClientNetwork::startUpdates()
 				}
 			}
 			messagesIn.clear();
+			*/
 		}
-
 		});
 	listen.detach();
 }

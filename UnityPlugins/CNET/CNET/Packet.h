@@ -5,9 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>   
 #include <string>
-#include <ws2tcpip.h>
 
-#pragma comment (lib, "ws2_32.lib")
 
 enum PacketType {
 	//initialization connection
