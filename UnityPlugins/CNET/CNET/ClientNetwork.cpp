@@ -49,9 +49,19 @@ CNET_H void SendMsg(char* message, ClientNetwork* client)
 	client->sendMessage(message);
 }
 
+CNET_H void SendTransformation(double px, double py, double pz, double rx, double ry, double rz, double sx, double sy, double sz, ClientNetwork* client) {
+	client->SendTransformation(px,py,pz,rx,ry,rz,sx,sy,sz);
+}
+
+
 CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
 {
 	recievePacket = action;
+}
+
+CNET_H int GetPlayerNumber(ClientNetwork* client)
+{
+	return client->index;
 }
 
 
@@ -217,6 +227,15 @@ int ClientNetwork::sendMessage(string message)
 	message = message + ",";
 
 	return sendData(MESSAGE, message);
+}
+
+int ClientNetwork::SendTransformation(double px, double py, double pz, double rx, double ry, double rz, double sx, double sy, double sz)
+{
+	string message = to_string(px) + "," + to_string(py) + "," + to_string(pz) + "," + 
+		to_string(rx) + "," + to_string(ry) + "," + to_string(rz) + "," + 
+		to_string(sx) + "," + to_string(sy) + "," + to_string(sz) + ",";
+
+	return sendData(TRANSFORMATION, message);
 }
 
 

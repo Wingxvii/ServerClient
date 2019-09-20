@@ -30,7 +30,7 @@ public:
 	sockaddr_in serverHint;
 	int clientLength;
 
-	vector<std::vector<std::string>> messagesIn;
+	vector<Packet> packetsIn;
 
 	int clientCount = 0;
 
@@ -43,10 +43,11 @@ public:
 	void startUpdates();
 
 	//send to all clients
-	void sendToAll(int packetType, string message);
+	void sendToAll(Packet pack);
 	//send to sepific client
-	void sendTo(int packetType, string message, int clientID);
+	void sendTo(Packet pack, int clientID);
 	//send to all except a client
-	void relay(int packetType, string message, int clientID);
+	void relay(Packet pack, int clientID);
+
 };
 

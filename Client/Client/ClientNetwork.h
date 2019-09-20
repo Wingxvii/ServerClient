@@ -22,6 +22,7 @@ public:
 
 	vector<std::vector<std::string>> connectionsIn;
 	vector<std::vector<std::string>> messagesIn;
+	vector<std::vector<std::string>> transformationsIn;
 
 	//client details
 	string addressDefault = "127.0.0.1";

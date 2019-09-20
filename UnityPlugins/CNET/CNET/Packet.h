@@ -14,6 +14,10 @@ enum PacketType {
 	//single string
 	MESSAGE = 1,
 
+	//transformation
+	TRANSFORMATION = 2,
+
+
 };
 
 struct Packet {
@@ -21,6 +25,7 @@ struct Packet {
 	unsigned int packet_type;
 	unsigned int sender = 0;
 	char data[DEFAULT_DATA_SIZE];
+	unsigned int id = 0;
 
 	void serialize(char* data) {
 		memcpy(data, this, sizeof(Packet));

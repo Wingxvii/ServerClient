@@ -24,7 +24,7 @@ ClientNetwork::ClientNetwork()
 	//initalization
 	connectionsIn = vector<std::vector<std::string>>();
 	messagesIn = vector<std::vector<std::string>>();
-
+	transformationsIn = vector<std::vector<std::string>>();
 }
 
 ClientNetwork::~ClientNetwork()
@@ -102,6 +102,9 @@ void ClientNetwork::startUpdates()
 					case PacketType::MESSAGE:			
 						messagesIn.push_back(parsedData);
 						break;
+					case PacketType::TRANSFORMATION:
+						transformationsIn.push_back(parsedData);
+						break;
 					}
 				}
 			}
@@ -140,6 +143,11 @@ void ClientNetwork::startUpdates()
 				}
 			}
 			messagesIn.clear();
+
+			for (std::vector<std::string> parsedData : transformationsIn) {
+				cout << "Transform Recieved from Player " << parsedData[0] << endl;
+			}
+			transformationsIn.clear();
 		}
 
 		});
