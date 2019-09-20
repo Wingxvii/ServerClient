@@ -3,7 +3,5 @@ D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(92): warning C4018: '<': si
 D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(118): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(132): warning C4018: '<': signed/unsigned mismatch
 D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(139): warning C4018: '<': signed/unsigned mismatch
-D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(169): warning C4018: '<': signed/unsigned mismatch
-  main.cpp
-  Generating Code...
+D:\Code\ServerClient\Client\Client\ClientNetwork.cpp(174): warning C4018: '<': signed/unsigned mismatch
   Client.vcxproj -> D:\Code\ServerClient\Client\Debug\Client.exe

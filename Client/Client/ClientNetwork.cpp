@@ -145,7 +145,12 @@ void ClientNetwork::startUpdates()
 			messagesIn.clear();
 
 			for (std::vector<std::string> parsedData : transformationsIn) {
-				cout << "Transform Recieved from Player " << parsedData[0] << endl;
+				//cout << "Transform Recieved from Player " << parsedData[0] << endl;
+
+				cout << "(" << parsedData[1] << "," << parsedData[2] << "," << parsedData[3] << ")" << endl;
+				cout << "(" << parsedData[4] << "," << parsedData[5] << "," << parsedData[6] << ")" << endl;
+				cout << "(" << parsedData[7] << "," << parsedData[8] << "," << parsedData[9] << ")" << endl << endl;
+
 			}
 			transformationsIn.clear();
 		}
