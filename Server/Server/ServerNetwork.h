@@ -30,6 +30,8 @@ public:
 	sockaddr_in serverHint;
 	int clientLength;
 
+	bool listening = true;
+
 	vector<Packet> packetsIn;
 
 	int clientCount = 0;

@@ -17,7 +17,7 @@ ServerNetwork::ServerNetwork()
 	//socket setup
 	serverHint.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverHint.sin_family = AF_INET;
-	serverHint.sin_port = htons(54000); //convert from little to big endian
+	serverHint.sin_port = htons(54222); //convert from little to big endian
 	clientLength = sizeof(serverHint);
 
 	if (bind(in, (sockaddr*)& serverHint, sizeof(serverHint)) == SOCKET_ERROR) {
@@ -31,6 +31,7 @@ ServerNetwork::ServerNetwork()
 
 ServerNetwork::~ServerNetwork()
 {
+	listening = false;
 	closesocket(in);
 }
 
@@ -72,7 +73,7 @@ void ServerNetwork::startUpdates()
 	thread listen = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (true) {
+		while (listening) {
 			int length = recvfrom(in, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverHint, &clientLength);
 			if (length == SOCKET_ERROR) {
 				cout << "Recieve Error: " << WSAGetLastError() << endl;

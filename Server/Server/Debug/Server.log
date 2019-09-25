@@ -1,6 +1,6 @@
 ﻿  ServerNetwork.cpp
-D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(86): warning C4018: '<': signed/unsigned mismatch
-D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(156): warning C4018: '<': signed/unsigned mismatch
+D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(87): warning C4018: '<': signed/unsigned mismatch
+D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(157): warning C4018: '<': signed/unsigned mismatch
   main.cpp
   Generating Code...
   Server.vcxproj -> D:\Code\ServerClient\Server\Debug\Server.exe

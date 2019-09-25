@@ -13,6 +13,14 @@
 
 using namespace std;
 
+
+struct Vec3 {
+	float x;
+	float y;
+	float z;
+};
+
+
 #pragma once
 class ClientNetwork
 {
@@ -23,6 +31,8 @@ public:
 	SOCKET client;
 	sockaddr_in server;
 	int serverlength;
+
+	bool listening = true;
 
 	vector<std::vector<std::string>> connectionsIn;
 	vector<std::vector<std::string>> messagesIn;
@@ -43,13 +53,9 @@ public:
 
 	//data send wrappers
 	int sendMessage(string message);
-	int SendTransformation(double px, double py, double pz, double rx, double ry, double rz, double sx, double sy, double sz);
+	int SendTransformation(Vec3 pos, Vec3 rot);
 
 
-};
-
-struct temp {
-	string x = "";
 };
 
 extern "C" {
