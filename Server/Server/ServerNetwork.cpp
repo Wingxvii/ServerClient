@@ -98,6 +98,7 @@ void ServerNetwork::startUpdates()
 						acceptNewClient(parsedData, serverHint, clientLength);
 						break;
 					case PacketType::MESSAGE:
+						printOut(packet, packet.sender);
 						packetsIn.push_back(packet);
 						break;
 					case PacketType::TRANSFORMATION:
@@ -169,4 +170,14 @@ void ServerNetwork::relay(Packet pack, int clientID)
 		}
 	}
 
+}
+
+void ServerNetwork::printOut(Packet pack, int clientID)
+{
+	std::vector<std::string> parsedData;
+	parsedData = Tokenizer::tokenize(',', pack.data);
+
+	for (int i = 0; i < parsedData.size(); i++) {
+		cout << parsedData[i] << endl;
+	}
 }
