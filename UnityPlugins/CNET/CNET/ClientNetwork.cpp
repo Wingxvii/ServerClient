@@ -44,9 +44,9 @@ CNET_H void StartUpdating(ClientNetwork* client)
 	client->startUpdates();
 }
 
-CNET_H void SendMsg(char* message, ClientNetwork* client)
+CNET_H void SendData(int type, char* message,  ClientNetwork* client)
 {
-	client->sendMessage(message);
+	client->sendData((PacketType)type, message);
 }
 
 
@@ -217,13 +217,6 @@ void ClientNetwork::startUpdates()
 		}
 		});
 	listen.detach();
-}
-
-int ClientNetwork::sendMessage(string message)
-{
-	message = message + ",";
-
-	return sendData(MESSAGE, message);
 }
 
 int ClientNetwork::SendTransformation(Vec3 pos, Vec3 rot)

@@ -52,7 +52,6 @@ public:
 	static std::vector<std::string> tokenize(char token, std::string text);
 
 	//data send wrappers
-	int sendMessage(string message);
 	int SendTransformation(Vec3 pos, Vec3 rot);
 
 
@@ -73,7 +72,7 @@ extern "C" {
 	CNET_H int Connect(char* ip, ClientNetwork* client);
 	CNET_H void StartUpdating(ClientNetwork* client);
 
-	CNET_H void SendMsg(char* ip, ClientNetwork* client);
+	CNET_H void SendData(int type, char* message,  ClientNetwork* client);
 	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 	CNET_H int GetPlayerNumber(ClientNetwork* client);
 
