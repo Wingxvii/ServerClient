@@ -75,7 +75,6 @@ extern "C" {
 	CNET_H void StartUpdating(ClientNetwork* client);
 
 	CNET_H void SendMsg(char* ip, ClientNetwork* client);
-	CNET_H void SendTransformation(double px, double py, double pz, double rx, double ry, double rz, double sx, double sy, double sz, ClientNetwork* client);
 	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 	CNET_H int GetPlayerNumber(ClientNetwork* client);
 

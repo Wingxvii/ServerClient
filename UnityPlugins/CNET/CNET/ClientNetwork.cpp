@@ -49,10 +49,6 @@ CNET_H void SendMsg(char* message, ClientNetwork* client)
 	client->sendMessage(message);
 }
 
-CNET_H void SendTransformation(Vec3 pos, Vec3 rot, ClientNetwork* client) {
-	client->SendTransformation(pos, rot);
-}
-
 
 CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
 {
