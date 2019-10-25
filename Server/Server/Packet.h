@@ -16,8 +16,26 @@ enum PacketType {
 	//single string
 	MESSAGE = 1,
 
-	//transformation
-	TRANSFORMATION = 2,
+	//FPS DATA TYPES
+
+	//2vec3 + int
+	PLAYERDATA = 2,
+	//int
+	WEAPONSTATE = 3,
+	//int
+	DAMAGEDEALT = 4,
+
+	//RTS DATA TYPES
+
+	//vec4[0-100]
+	DROIDLOCATIONS = 5,
+	//2int + vec3
+	BUILD = 6,
+	//int
+	KILL = 7,
+	//int
+	GAMESTATE = 8,
+
 };
 
 

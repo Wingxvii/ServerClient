@@ -62,7 +62,6 @@ extern "C" {
 	//message action
 	void (*recievePacket)(int type, int sender, char* data);
 
-
 	//shared methods here
 	CNET_H int Add(int a, int b);
 	CNET_H void RecieveString(const char* str);		//this is send

@@ -34,6 +34,12 @@ public:
 
 	vector<Packet> packetsIn;
 
+	vector<Packet> packets1In;	//RTS
+	vector<Packet> packets2In;	//FPS1
+	vector<Packet> packets3In;	//FPS2
+	vector<Packet> packets4In;	//FPS3
+
+
 	int clientCount = 0;
 
 	std::vector<UserProfile> ConnectedUsers;

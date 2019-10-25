@@ -99,26 +99,35 @@ void ServerNetwork::startUpdates()
 						break;
 					case PacketType::MESSAGE:
 						//printOut(packet, packet.sender);
-						packetsIn.push_back(packet);
+						relay(packet, packet.sender);
 						break;
-					case PacketType::TRANSFORMATION:
-						packetsIn.push_back(packet);
+					case PacketType::PLAYERDATA:
+						relay(packet, packet.sender);
 						break;
+					case PacketType::WEAPONSTATE:
+						relay(packet, packet.sender);
+						break;
+					case PacketType::DAMAGEDEALT:
+						sendTo(packet, packet.data[0]);
+						break;
+					case PacketType::DROIDLOCATIONS:
+						relay(packet, packet.sender);
+						break;
+					case PacketType::BUILD:
+						relay(packet, packet.sender);
+						break;
+					case PacketType::KILL:
+						relay(packet, packet.sender);
+						break;
+					case PacketType::GAMESTATE:
+						relay(packet, packet.sender);
+						break;
+
 					default:
 						break;
 					}
 				}
 			}
-
-			//process packets
-			for (Packet packet : packetsIn) {
-				//filter by sender
-				if (packet.sender != 0) {
-					//relay
-					relay(packet, packet.sender);
-				}
-			}
-			packetsIn.clear();		
 		}
 		});
 	listen.detach();
@@ -156,11 +165,11 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 void ServerNetwork::relay(Packet pack, int clientID)
 {
 	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
-		
+		/*
 		if (counter + 1 == clientID) {
 			continue;
 		}
-		
+		*/
 		const unsigned int packet_size = sizeof(pack);
 		char packet_data[packet_size];
 
