@@ -1,5 +1,1 @@
-﻿  ClientNetwork.cpp
-D:\Code\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(97): warning C4018: '<': signed/unsigned mismatch
-D:\Code\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(120): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-     Creating library D:\Code\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.lib and object D:\Code\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.exp
-  CNET.vcxproj -> D:\Code\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll
+﻿  CNET.vcxproj -> C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll

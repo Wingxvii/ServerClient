@@ -69,7 +69,7 @@ extern "C" {
 
 	CNET_H ClientNetwork* CreateClient();
 	CNET_H void DeleteClient(ClientNetwork* client);
-	CNET_H int Connect(char* ip, ClientNetwork* client);
+	CNET_H void Connect(char* ip, ClientNetwork* client);
 	CNET_H void StartUpdating(ClientNetwork* client);
 
 	CNET_H void SendData(int type, char* message,  ClientNetwork* client);
