@@ -33,7 +33,7 @@ CNET_H void DeleteClient(ClientNetwork* client) {
 	delete client;
 }
 //connection
-CNET_H int Connect(char* ip, ClientNetwork* client)
+CNET_H void Connect(char* ip, ClientNetwork* client)
 {
 	string _ip = string(ip);
 	client->connect(_ip);
@@ -217,13 +217,6 @@ void ClientNetwork::startUpdates()
 		}
 		});
 	listen.detach();
-}
-
-int ClientNetwork::SendTransformation(Vec3 pos, Vec3 rot)
-{
-	string message = to_string(pos.x) + "," + to_string(pos.y) + "," + to_string(pos.z) + "," +
-		to_string(rot.x) + "," + to_string(rot.y) + "," + to_string(rot.z) + ",";
-	return sendData(TRANSFORMATION, message);
 }
 
 
