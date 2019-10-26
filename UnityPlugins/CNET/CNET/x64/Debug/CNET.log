@@ -1,1 +1,4 @@
-﻿  CNET.vcxproj -> C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll
+﻿  ClientNetwork.cpp
+C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(171): warning C4018: '<': signed/unsigned mismatch
+C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(193): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  CNET.vcxproj -> C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll

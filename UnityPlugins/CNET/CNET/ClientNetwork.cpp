@@ -14,7 +14,8 @@ CNET_H void RecieveString(const char* str) {
 CNET_H void SendString(char* str, int length)
 {
 	string x = "hello";
-	strcpy_s(str, length, x.c_str());
+	//strcpy_s(str, length, x.c_str());
+	memcpy(str, x.c_str(), length);
 }
 
 
@@ -58,6 +59,11 @@ CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data)
 CNET_H int GetPlayerNumber(ClientNetwork* client)
 {
 	return client->index;
+}
+
+CNET_H void SetDebugCommand(void(*action)(char* data))
+{
+	DebugCommand = action;
 }
 
 
@@ -119,9 +125,11 @@ int ClientNetwork::sendData(int packetType, string message)
 	//create packet
 	Packet packet;
 	//strcpy_s(packet.data, message.c_str() + '\0');
-	memcpy(packet.data, message.c_str, message.size());
+	memcpy(packet.data, message.c_str(), message.size());
 	packet.packet_type = packetType;
 	packet.sender = index;
+
+	//DebugCommand(packet.data);
 
 	//set size
 	const unsigned int packet_size = sizeof(packet);

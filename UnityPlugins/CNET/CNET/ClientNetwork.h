@@ -61,6 +61,8 @@ extern "C" {
 	//message action
 	void (*recievePacket)(int type, int sender, char* data);
 
+	void (*DebugCommand)(char* data);
+
 	//shared methods here
 	CNET_H int Add(int a, int b);
 	CNET_H void RecieveString(const char* str);		//this is send
@@ -76,5 +78,5 @@ extern "C" {
 	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 	CNET_H int GetPlayerNumber(ClientNetwork* client);
 
-
+	CNET_H void SetDebugCommand(void(*action)(char* data));
 }

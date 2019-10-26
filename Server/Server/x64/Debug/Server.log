@@ -1,6 +1,3 @@
-﻿  main.cpp
-  ServerNetwork.cpp
-C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\Server\Server\ServerNetwork.cpp(87): warning C4018: '<': signed/unsigned mismatch
-  Tokenizer.cpp
-  Generating Code...
+﻿  ServerNetwork.cpp
+C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\Server\Server\ServerNetwork.cpp(95): warning C4018: '<': signed/unsigned mismatch
   Server.vcxproj -> C:\Users\jakob\OneDrive\Documents\_YEAR_3\GDW 3 sem 1\ServerClient\Server\x64\Debug\Server.exe
