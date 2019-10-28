@@ -51,8 +51,6 @@ public:
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
 
-	//data send wrappers
-	int SendTransformation(Vec3 pos, Vec3 rot);
 
 
 };

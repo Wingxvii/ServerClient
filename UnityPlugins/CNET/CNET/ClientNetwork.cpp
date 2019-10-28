@@ -140,11 +140,6 @@ int ClientNetwork::sendData(int packetType, string message)
 
 void ClientNetwork::startUpdates()
 {
-	/*
-	std::thread thread_name_here(&ClientNetwork::sendMessage, this, "1278.0.1");
-	thread_name_here.detach();
-	*/
-
 	//multithread
 	thread listen = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
@@ -189,31 +184,6 @@ void ClientNetwork::startUpdates()
 			}
 			connectionsIn.clear();
 
-			//messages are processed in #
-			
-			/*
-			//process messages
-			for (std::vector<std::string> parsedData : messagesIn) {
-				int sender = std::stoi(parsedData[0]);
-
-				//filter by sender
-				if (sender == 0) {
-					string message = "";
-					for (int counter = 1; counter < parsedData.size(); counter++){
-						message = message + parsedData[counter];
-					}
-					cout << "Message Recieved from Server :" << message << endl;
-				}
-				else {
-					string message = "";
-					for (int counter = 1; counter < parsedData.size(); counter++) {
-						message = message + parsedData[counter];
-					}
-					cout << "Message Recieved from Client"<< parsedData[0] << " :" << message << endl;
-				}
-			}
-			messagesIn.clear();
-			*/
 		}
 		});
 	listen.detach();
