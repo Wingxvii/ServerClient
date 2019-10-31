@@ -108,7 +108,9 @@ void ServerNetwork::startUpdates()
 						relay(packet, packet.sender);
 						break;
 					case PacketType::DAMAGEDEALT:
-						sendTo(packet, packet.data[0]);
+						//tokenize
+						parsedData = Tokenizer::tokenize(',', packet.data);
+						sendTo(packet, std::stoi(parsedData[0]));
 						break;
 					case PacketType::DROIDLOCATIONS:
 						relay(packet, packet.sender);

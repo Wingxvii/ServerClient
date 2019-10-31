@@ -49,6 +49,12 @@ CNET_H void SendData(int type, char* message,  ClientNetwork* client)
 	client->sendData((PacketType)type, message);
 }
 
+CNET_H void TargetSend(int type, char* message, ClientNetwork* client, int clientNum)
+{
+	client->sendData((PacketType)type, message);
+
+}
+
 
 CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
 {
@@ -146,7 +152,6 @@ void ClientNetwork::startUpdates()
 
 		while (listening) {
 
-			
 			//recieve messages
 			int length = recvfrom(client, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
 			if (length != SOCKET_ERROR) {

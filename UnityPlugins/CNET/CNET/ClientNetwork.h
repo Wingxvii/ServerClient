@@ -64,7 +64,6 @@ extern "C" {
 	CNET_H void RecieveString(const char* str);		//this is send
 	CNET_H void SendString(char* str, int length);	//this is recieve
 
-
 	CNET_H ClientNetwork* CreateClient();
 	CNET_H void DeleteClient(ClientNetwork* client);
 	CNET_H void Connect(char* ip, ClientNetwork* client);
