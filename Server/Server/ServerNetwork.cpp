@@ -157,7 +157,7 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 
 	pack.serialize(packet_data);
 
-	int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[clientID].clientAddress, ConnectedUsers[clientID - 1].clientLength);
+	int sendOK = sendto(in, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[clientID - 1].clientAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 	}
