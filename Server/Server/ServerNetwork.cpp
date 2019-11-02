@@ -167,11 +167,11 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 void ServerNetwork::relay(Packet pack, int clientID)
 {
 	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
-		/*
+		
 		if (counter + 1 == clientID) {
 			continue;
 		}
-		*/
+		
 		const unsigned int packet_size = sizeof(pack);
 		char packet_data[packet_size];
 
