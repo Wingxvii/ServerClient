@@ -1,0 +1,12 @@
+﻿  main.cpp
+  ServerNetwork.cpp
+C:\Vzr\Repos\ServerClient\Server\Server\ServerNetwork.cpp(87,14): warning C4018: '<': signed/unsigned mismatch
+C:\Vzr\Repos\ServerClient\Server\Server\ServerNetwork.cpp(172,32): warning C4018: '<': signed/unsigned mismatch
+  Tokenizer.cpp
+C:\Vzr\Repos\ServerClient\Server\Server\ServerNetwork.cpp(196,20): warning C4018: '<': signed/unsigned mismatch
+C:\Vzr\Repos\ServerClient\Server\Server\Tokenizer.cpp(8,20): warning C4018: '<': signed/unsigned mismatch
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 311 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Server.vcxproj -> C:\Vzr\Repos\ServerClient\Server\Release\Server.exe
