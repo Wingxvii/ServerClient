@@ -61,7 +61,7 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 		strcpy_s(initPack.data, (to_string(newProfile.index) + ",").c_str() + '\0');
 
 		sendTo(initPack, newProfile.index);
-		cout << "Client Accepted" << endl;
+		cout << "Client Accepted " << newProfile.index << endl;
 	}
 	else {
 		cout << "Client Already Connected";
@@ -122,6 +122,9 @@ void ServerNetwork::startUpdates()
 						relay(packet, packet.sender);
 						break;
 					case PacketType::GAMESTATE:
+						relay(packet, packet.sender);
+						break;
+					case PacketType::TURRETDATA:
 						relay(packet, packet.sender);
 						break;
 

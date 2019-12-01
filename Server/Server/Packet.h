@@ -35,6 +35,8 @@ enum PacketType {
 	KILL = 7,
 	//int
 	GAMESTATE = 8,
+	//Turret:int RotationEulers:vec3 State:int
+	TURRETDATA = 9,
 
 };
 
