@@ -1,6 +1,6 @@
 #pragma once
-#define MAX_PACKET_SIZE 100000
-#define DEFAULT_DATA_SIZE 512
+#define MAX_PACKET_SIZE 10000
+#define DEFAULT_DATA_SIZE 5700
 
 #include <stdio.h>
 #include <stdlib.h>   
@@ -12,14 +12,11 @@
 enum PacketType {
 	//initialization connection
 	INIT_CONNECTION = 0,
-
 	//single string
 	MESSAGE = 1,
 
-	//transformation
-	TRANSFORMATION = 2,
-
 };
+
 
 struct Packet {
 

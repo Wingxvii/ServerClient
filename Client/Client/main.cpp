@@ -11,17 +11,8 @@ int main() {
 	//init network
 	ClientNetwork net = ClientNetwork();
 
-	string ip;
-	cout << "Address:";
-	cin >> ip;
-
 	//connect to default ip address
-	if (ip == "0") {
-		net.connect();
-	}
-	else {
-		net.connect(ip);
-	}
+	net.connect("127.0.0.1");
 
 	net.startUpdates();
 

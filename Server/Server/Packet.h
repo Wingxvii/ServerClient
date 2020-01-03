@@ -1,5 +1,4 @@
 #pragma once
-#define MAX_PACKET_SIZE 10000
 #define DEFAULT_DATA_SIZE 5700
 
 #include <stdio.h>
@@ -12,31 +11,8 @@
 enum PacketType {
 	//initialization connection
 	INIT_CONNECTION = 0,
-
 	//single string
 	MESSAGE = 1,
-
-	//FPS DATA TYPES
-
-	//2vec3 + int
-	PLAYERDATA = 2,
-	//int
-	WEAPONSTATE = 3,
-	//int
-	DAMAGEDEALT = 4,
-
-	//RTS DATA TYPES
-
-	//vec4[0-100]
-	DROIDLOCATIONS = 5,
-	//2int + vec3
-	BUILD = 6,
-	//int
-	KILL = 7,
-	//int
-	GAMESTATE = 8,
-	//Turret:int RotationEulers:vec3 State:int
-	TURRETDATA = 9,
 
 };
 

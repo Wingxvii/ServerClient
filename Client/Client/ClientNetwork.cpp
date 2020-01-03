@@ -15,7 +15,7 @@ ClientNetwork::ClientNetwork()
 
 	//2. setup server information
 	server.sin_family = AF_INET;
-	server.sin_port = htons(54000);
+	server.sin_port = htons(54222);
 	serverlength = sizeof(server);
 
 	//3. setup socket
@@ -24,11 +24,11 @@ ClientNetwork::ClientNetwork()
 	//initalization
 	connectionsIn = vector<std::vector<std::string>>();
 	messagesIn = vector<std::vector<std::string>>();
-	transformationsIn = vector<std::vector<std::string>>();
 }
 
 ClientNetwork::~ClientNetwork()
 {
+	listening = false;
 	closesocket(client);
 }
 
@@ -72,11 +72,6 @@ int ClientNetwork::sendData(int packetType, string message)
 
 void ClientNetwork::startUpdates()
 {
-	/*
-	std::thread thread_name_here(&ClientNetwork::sendMessage, this, "1278.0.1");
-	thread_name_here.detach();
-	*/
-
 	//multithread
 	thread listen = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
@@ -102,9 +97,6 @@ void ClientNetwork::startUpdates()
 					case PacketType::MESSAGE:			
 						messagesIn.push_back(parsedData);
 						break;
-					case PacketType::TRANSFORMATION:
-						transformationsIn.push_back(parsedData);
-						break;
 					}
 				}
 			}
@@ -116,6 +108,7 @@ void ClientNetwork::startUpdates()
 				//filter by sender
 				if (sender == 0) {
 					index = std::stof(parsedData[1]);
+					cout << "Response Recieved" << endl;
 				}
 				else {
 					//do nothing
@@ -143,16 +136,6 @@ void ClientNetwork::startUpdates()
 				}
 			}
 			messagesIn.clear();
-
-			for (std::vector<std::string> parsedData : transformationsIn) {
-				//cout << "Transform Recieved from Player " << parsedData[0] << endl;
-
-				cout << "(" << parsedData[1] << "," << parsedData[2] << "," << parsedData[3] << ")" << endl;
-				cout << "(" << parsedData[4] << "," << parsedData[5] << "," << parsedData[6] << ")" << endl;
-				cout << "(" << parsedData[7] << "," << parsedData[8] << "," << parsedData[9] << ")" << endl << endl;
-
-			}
-			transformationsIn.clear();
 		}
 
 		});

@@ -14,7 +14,8 @@ using namespace std;
 struct UserProfile {
 	int index;
 	string Username;
-	sockaddr_in clientAddress;
+	sockaddr_in udpAddress;
+	SOCKET tcpSocket;
 	string clientIP;
 	int clientLength;
 };
@@ -26,9 +27,15 @@ public:
 	ServerNetwork();
 	~ServerNetwork();
 
-	SOCKET in;
-	sockaddr_in serverHint;
+	//UDP Socket
+	SOCKET udp;
+	sockaddr_in serverUDP;
 	int clientLength;
+
+	sockaddr_in serverTCP;
+	//master list of tracked TCP sockets
+	fd_set master;
+
 
 	bool listening = true;
 
@@ -47,6 +54,7 @@ public:
 public:
 	//accept and save new socket
 	void acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length);
+
 	//begin listening to input signals
 	void startUpdates();
 
@@ -55,10 +63,10 @@ public:
 	//send to sepific client
 	void sendTo(Packet pack, int clientID);
 	//send to all except a client
-	void relay(Packet pack, int clientID);
+	void relay(Packet pack, int clientID, bool useTCP);
 	//print to cout
 	void printOut(Packet pack, int clientID);
 
-
-};
+	//tcp send to
+	void sendTo(Packet pack, SOCKET client);};
 

@@ -9,6 +9,13 @@
 
 using namespace std;
 
+struct Vec3 {
+	float x;
+	float y;
+	float z;
+};
+
+
 #pragma once
 class ClientNetwork
 {
@@ -20,9 +27,10 @@ public:
 	sockaddr_in server;
 	int serverlength;
 
+	bool listening = true;
+
 	vector<std::vector<std::string>> connectionsIn;
 	vector<std::vector<std::string>> messagesIn;
-	vector<std::vector<std::string>> transformationsIn;
 
 	//client details
 	string addressDefault = "127.0.0.1";
@@ -32,15 +40,14 @@ public:
 	int connect();
 	int connect(string ip);
 
+	int sendMessage(string message);
+
 	void startUpdates();
 	int sendData(int packetType, string message);
 
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
 
-	//data send wrappers
-	int sendMessage(string message);
 
 
 };
-
