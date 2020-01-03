@@ -14,12 +14,16 @@ ClientNetwork::ClientNetwork()
 	}
 
 	//2. setup server information
-	server.sin_family = AF_INET;
-	server.sin_port = htons(54222);
-	serverlength = sizeof(server);
+	serverUDP.sin_family = AF_INET;
+	serverUDP.sin_port = htons(54222);
+	serverlength = sizeof(serverUDP);
+
+	serverTCP.sin_family = AF_INET;
+	serverTCP.sin_port = htons(54223);
 
 	//3. setup socket
-	client = socket(AF_INET, SOCK_DGRAM, 0);
+	udp = socket(AF_INET, SOCK_DGRAM, 0);
+	tcp = socket(AF_INET, SOCK_STREAM, 0);
 
 	//initalization
 	connectionsIn = vector<std::vector<std::string>>();
@@ -29,24 +33,36 @@ ClientNetwork::ClientNetwork()
 ClientNetwork::~ClientNetwork()
 {
 	listening = false;
-	closesocket(client);
+	closesocket(udp);
 }
 
-int ClientNetwork::connect()
+int ClientNetwork::connectToServer()
 {
-	return connect(addressDefault);
+	return connectToServer(addressDefault);
 }
 
-int ClientNetwork::connect(string ip)
+int ClientNetwork::connectToServer(string ip)
 {
-	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
+	inet_pton(AF_INET, ip.c_str(), &serverUDP.sin_addr);		//connecting to the udp server
+
+	inet_pton(AF_INET, ip.c_str(), &serverTCP.sin_addr);		//connecting to the tcp server
+
+	int connResult = connect(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP));
+	if (connResult == SOCKET_ERROR)
+	{
+		cerr << "Can't connect to server, Err #" << WSAGetLastError() << endl;
+		closesocket(tcp);
+		WSACleanup();
+		return SOCKET_ERROR;
+	}
+
 	//init message
-	sendData(INIT_CONNECTION, "0");
+	sendData(INIT_CONNECTION, "0", true);
 	//ping and determine client index
 	return 0;
 }
 
-int ClientNetwork::sendData(int packetType, string message)
+int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 {
 	//create packet
 	Packet packet;
@@ -61,11 +77,24 @@ int ClientNetwork::sendData(int packetType, string message)
 	//seralize
 	packet.serialize(packet_data);
 
-	//send to server
-	int sendOK = sendto(client, packet_data, packet_size, 0, (sockaddr*)& server, sizeof(server));
-	if (sendOK == SOCKET_ERROR) {
-		cout << "Send Error: " << WSAGetLastError() << endl;
-		return -1;
+	int sendOK;
+
+	//udp send
+	if (!useTCP) {
+		sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&serverUDP, sizeof(serverUDP));
+		if (sendOK == SOCKET_ERROR) {
+			cout << "Send Error: " << WSAGetLastError() << endl;
+			return -1;
+		}
+	}
+	//tcp send
+	else {
+		int sendResult = send(tcp, packet_data, packet_size, 0);
+		if (sendResult == SOCKET_ERROR)
+		{
+			cout << "Send Error: " << WSAGetLastError() << endl;
+			return -1;
+		}
 	}
 	return sendOK;
 }
@@ -73,12 +102,12 @@ int ClientNetwork::sendData(int packetType, string message)
 void ClientNetwork::startUpdates()
 {
 	//multithread
-	thread listen = thread([&]() {
+	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (true) {
 			//recieve messages
-			int length = recvfrom(client, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
+			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
 				std::vector<std::string> parsedData;
@@ -139,14 +168,70 @@ void ClientNetwork::startUpdates()
 		}
 
 		});
-	listen.detach();
+	udpUpdate.detach();
+
+	thread tcpUpdate = thread([&]() {
+		char* buf = new char[MAX_PACKET_SIZE];
+
+		while (true) {
+			//recieve messages
+			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
+			if (length != SOCKET_ERROR) {
+				Packet packet;
+				std::vector<std::string> parsedData;
+
+				int i = 0;
+				while (i < (unsigned int)length) {
+					packet.deserialize(&(buf[i]));
+					i += sizeof(Packet);
+					parsedData = tokenize(',', packet.data);
+					parsedData.insert(parsedData.begin(), to_string(packet.sender));
+					int sender = std::stoi(parsedData[0]);
+
+					switch (packet.packet_type) {
+					case PacketType::INIT_CONNECTION:
+						//filter by sender
+						if (sender == 0) {
+							index = std::stof(parsedData[1]);
+							cout << "Innitial Connection Recieved" << endl;
+							sendData(INIT_CONNECTION, to_string(index), false);
+						}
+						else {
+							//do nothing
+						}
+						break;
+					case PacketType::MESSAGE:
+						//filter by sender
+						if (sender == 0) {
+							string message = "";
+							for (int counter = 1; counter < parsedData.size(); counter++) {
+								message = message + parsedData[counter];
+							}
+							cout << "Message Recieved from Server :" << message << endl;
+						}
+						else {
+							string message = "";
+							for (int counter = 1; counter < parsedData.size(); counter++) {
+								message = message + parsedData[counter];
+							}
+							cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		});
+	tcpUpdate.detach();
+
 }
 
-int ClientNetwork::sendMessage(string message)
+int ClientNetwork::sendMessage(string message, bool useTCP)
 {
 	message = message + ",";
 
-	return sendData(MESSAGE, message);
+	return sendData(MESSAGE, message, useTCP);
 }
 
 std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)

@@ -12,7 +12,7 @@ int main() {
 	ClientNetwork net = ClientNetwork();
 
 	//connect to default ip address
-	net.connect("127.0.0.1");
+	net.connectToServer();
 
 	net.startUpdates();
 
@@ -21,7 +21,7 @@ int main() {
 		string s;
 		cin >> s;
 
-		net.sendMessage(s);
+		net.sendMessage(s, false);
 	}
 
 

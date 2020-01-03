@@ -23,8 +23,11 @@ public:
 	ClientNetwork();
 	~ClientNetwork();
 
-	SOCKET client;
-	sockaddr_in server;
+	SOCKET udp;
+	SOCKET tcp;
+
+	sockaddr_in serverUDP;
+	sockaddr_in serverTCP;
 	int serverlength;
 
 	bool listening = true;
@@ -37,13 +40,13 @@ public:
 	int index = 0;
 
 public:
-	int connect();
-	int connect(string ip);
+	int connectToServer();
+	int connectToServer(string ip);
 
-	int sendMessage(string message);
+	int sendMessage(string message, bool useTCP = false);
 
 	void startUpdates();
-	int sendData(int packetType, string message);
+	int sendData(int packetType, string message, bool useTCP = false);	//udp send data
 
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);

@@ -30,7 +30,6 @@ ServerNetwork::ServerNetwork()
 	serverTCP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverTCP.sin_family = AF_INET;
 	serverTCP.sin_port = htons(54223);
-	clientLength = sizeof(serverTCP);
 	if (bind(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP)) == SOCKET_ERROR) {
 		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
 	}
@@ -55,7 +54,7 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 {
 	//processing must be done here
 	int sender = std::stoi(data[0]);
-	if (sender != 0 && sender < ConnectedUsers.size) {
+	if (sender != 0 && sender < ConnectedUsers.size()) {
 
 		ConnectedUsers[sender].udpAddress = serverUDP;
 		ConnectedUsers[sender].clientLength = clientLength;
@@ -242,7 +241,7 @@ void ServerNetwork::sendTo(Packet pack, SOCKET client)
 	}
 }
 
-void ServerNetwork::relay(Packet pack, int clientID, bool useTCP = false)
+void ServerNetwork::relay(Packet pack, int clientID, bool useTCP)
 {
 	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
 		

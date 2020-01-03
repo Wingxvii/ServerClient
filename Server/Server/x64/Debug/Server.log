@@ -1,3 +1,6 @@
 ﻿  ServerNetwork.cpp
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(89,14): warning C4018: '<': signed/unsigned mismatch
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(40,2): warning C4805: '==': unsafe mix of type 'SOCKET' and type 'bool' in operation
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(93,14): warning C4018: '<': signed/unsigned mismatch
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(131,1): warning C4805: '==': unsafe mix of type 'SOCKET' and type 'bool' in operation
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(171,15): warning C4018: '<': signed/unsigned mismatch
   Server.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe

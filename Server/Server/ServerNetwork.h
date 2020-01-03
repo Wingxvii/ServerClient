@@ -63,7 +63,7 @@ public:
 	//send to sepific client
 	void sendTo(Packet pack, int clientID);
 	//send to all except a client
-	void relay(Packet pack, int clientID, bool useTCP);
+	void relay(Packet pack, int clientID, bool useTCP = false);
 	//print to cout
 	void printOut(Packet pack, int clientID);
 
