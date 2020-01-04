@@ -42,7 +42,8 @@ ServerNetwork::ServerNetwork()
 	//zero the master list, then add in the listener socket
 	FD_ZERO(&master);
 	FD_SET(tcp, &master);
-	
+	FD_SET(udp, &master);
+
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
 	packetsIn = vector<Packet>();
@@ -66,12 +67,13 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 
 		ConnectedUsers[sender - 1].udpAddress = serverUDP;
 		ConnectedUsers[sender - 1].clientLength = clientLength;
+		ConnectedUsers[sender - 1].active = true;
 
 		char str[INET6_ADDRSTRLEN];
 
 		inet_ntop(AF_INET, &(ConnectedUsers[sender - 1].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
 		ConnectedUsers[sender - 1].clientIP = str;
-		cout << "Client Accepted " << ConnectedUsers[sender - 1].index << endl;
+		cout << "Client " << ConnectedUsers[sender - 1].index  << " has connected."<< endl;
 	}
 	else {
 		cout << "Connection Error";
@@ -82,51 +84,7 @@ void ServerNetwork::startUpdates()
 {
 	cout << "Server Running..." << endl;
 
-	thread udpUpdate = thread([&]() {
 
-		char* buf = new char[MAX_PACKET_SIZE];
-
-		while (listening) {
-			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverUDP, &clientLength);
-			if (length == SOCKET_ERROR) {
-				cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
-			}
-
-			cout << "UDP Packet Recieved" << endl;
-
-			if (length != SOCKET_ERROR) {
-				Packet packet;
-				std::vector<std::string> parsedData;
-
-				int i = 0;
-				while (i < (unsigned int)length) {
-					packet.deserialize(&(buf[i]));
-					i += sizeof(Packet);
-
-					switch (packet.packet_type) {
-					case PacketType::INIT_CONNECTION:
-
-						//tokenize
-						parsedData = Tokenizer::tokenize(',', packet.data);
-						parsedData.insert(parsedData.begin(), to_string(packet.sender));
-
-						acceptNewClient(parsedData, serverUDP, clientLength);
-						break;
-					case PacketType::MESSAGE:
-						//printOut(packet, packet.sender);
-						relay(packet, packet.sender);
-						break;
-
-					default:
-						break;
-					}
-				}
-			}
-		}
-		});
-	udpUpdate.detach();
-
-	thread tcpUpdate = thread([&]() {
 		while (listening) {
 
 		fd_set copy = master;
@@ -134,16 +92,14 @@ void ServerNetwork::startUpdates()
 
 		for (int i = 0; i < socketCount; i++)
 		{
-			cout << "TCP Packet Recieved: ";
+			cout << "Packet Recieved:";
 
 			SOCKET sock = copy.fd_array[i];
 
 			//create new client profile
 			if (sock == tcp)
 			{
-
-				cout << "Connection" << endl;
-
+				cout << "TCP Connection" << endl;
 
 				// Accept a new connection
 				SOCKET client = accept(tcp, nullptr, nullptr);
@@ -167,21 +123,66 @@ void ServerNetwork::startUpdates()
 				initPack.sender = 0;
 				initPack.packet_type = INIT_CONNECTION;
 				strcpy_s(initPack.data, (to_string(newProfile.index) + ",").c_str() + '\0');
-
-				cout << "sending index: " + to_string(newProfile.index)<< endl;
 				sendTo(initPack, client);
 
 			}
+			else if (sock == udp) {
+				char* buf = new char[MAX_PACKET_SIZE];
+
+				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &clientLength);
+				if (length == SOCKET_ERROR) {
+					cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
+				}
+
+				cout << "UDP ";
+
+				if (length != SOCKET_ERROR) {
+					Packet packet;
+					std::vector<std::string> parsedData;
+
+					int i = 0;
+					while (i < (unsigned int)length) {
+						packet.deserialize(&(buf[i]));
+						i += sizeof(Packet);
+
+						switch (packet.packet_type) {
+						case PacketType::INIT_CONNECTION:
+							cout << "Connection" << endl;
+
+							//tokenize
+							parsedData = Tokenizer::tokenize(',', packet.data);
+							parsedData.insert(parsedData.begin(), to_string(packet.sender));
+
+							acceptNewClient(parsedData, serverUDP, clientLength);
+							break;
+						case PacketType::MESSAGE:
+							cout << "Message" << endl;
+							relay(packet, packet.sender);
+							break;
+
+						default:
+							break;
+						}
+					}
+				}
+			}
 			else {
 
-				cout << "Message" << endl;
+				cout << "TCP ";
 
 				char* buf = new char[MAX_PACKET_SIZE];
 
 				int length = recv(sock, buf, MAX_PACKET_SIZE, 0);
 				if (length <= 0)
 				{
-					cout << "Client Disconnected" << endl;
+					cout << "Disconnection" << endl;
+
+					//handle disconnected user updates
+					for (UserProfile profile : ConnectedUsers) {
+						if (sock == profile.tcpSocket) {
+							profile.active = false;
+						}
+					}
 
 					// Drop the client
 					closesocket(sock);
@@ -203,6 +204,8 @@ void ServerNetwork::startUpdates()
 							cout << "Error: Incomming connection packet through invalid TCP channels";
 							break;
 						case PacketType::MESSAGE:
+							cout << "Message" << endl;
+
 							relay(packet, packet.sender);
 							break;
 						default:
@@ -213,11 +216,7 @@ void ServerNetwork::startUpdates()
 
 			}
 		}
-
-		}
-		});
-	tcpUpdate.detach();
-
+	}
 }
 
 void ServerNetwork::sendToAll(Packet pack)

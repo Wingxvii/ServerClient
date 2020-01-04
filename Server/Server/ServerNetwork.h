@@ -18,6 +18,9 @@ struct UserProfile {
 	SOCKET tcpSocket;
 	string clientIP;
 	int clientLength;
+
+	//checks for disconnection
+	bool active = false;
 };
 
 #pragma once
