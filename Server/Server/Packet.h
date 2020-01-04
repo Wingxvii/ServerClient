@@ -1,5 +1,5 @@
 #pragma once
-#define MAX_PACKET_SIZE 10000
+#define MAX_PACKET_SIZE 6000
 #define DEFAULT_DATA_SIZE 5700
 
 #include <stdio.h>
@@ -14,6 +14,30 @@ enum PacketType {
 	INIT_CONNECTION = 0,
 	//single string
 	MESSAGE = 1,
+
+	//FPS Managed Data
+
+	//data of players
+	PLAYER_DATA = 2,
+	//player weapon switch
+	WEAPON_DATA = 3,
+	//environment damage
+	ENVIRONMENT_DAMAGE = 4,
+	
+	//RTS Managed Data
+
+	//data of all droids (up to 100)
+	DROID_POSITION = 5,
+	//entity built
+	BUILD_ENTITY = 7,
+	//entity killed
+	KILL_ENTITY = 8,
+	//game state
+	GAME_STATE = 9,
+	//player damaged
+	PLAYER_DAMAGE = 10,
+	//data of all turrets
+	TURRET_DATA = 11,
 
 };
 

@@ -9,13 +9,6 @@
 
 using namespace std;
 
-struct Vec3 {
-	float x;
-	float y;
-	float z;
-};
-
-
 #pragma once
 class ClientNetwork
 {
@@ -51,7 +44,6 @@ public:
 
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
-
 
 
 };

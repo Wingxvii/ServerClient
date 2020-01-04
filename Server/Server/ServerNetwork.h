@@ -5,6 +5,7 @@
 #include <queue>
 #include "Packet.h"
 #include "Tokenizer.h"
+#include "GameData.h"
 
 #pragma comment (lib, "ws2_32.lib")
 #define DEFAULT_PORT "6883" 
@@ -40,7 +41,6 @@ public:
 	//master list of tracked TCP sockets
 	fd_set master;
 
-
 	bool listening = true;
 
 	vector<Packet> packetsIn;
@@ -48,8 +48,15 @@ public:
 	int clientCount = 0;
 
 	std::vector<UserProfile> ConnectedUsers;
+	
+	//server stored game data
+	std::vector<EntityData> entities;
+
 
 public:
+	//initalize the entity game data
+	void initEntities();
+
 	//accept and save new socket
 	void acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length);
 
@@ -67,5 +74,11 @@ public:
 	//print to cout
 	void printOut(Packet pack, int clientID);
 	//tcp send to
-	void sendTo(Packet pack, SOCKET client);};
+	void sendTo(Packet pack, SOCKET client);
+
+	void ProcessTCP(Packet pack);
+	void ProcessUDP(Packet pack);
+
+
+};
 

@@ -19,7 +19,7 @@ ServerNetwork::ServerNetwork()
 	serverUDP.sin_family = AF_INET;
 	serverUDP.sin_port = htons(54222);
 	clientLength = sizeof(serverUDP);
-	if (bind(udp, (sockaddr*)& serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
+	if (bind(udp, (sockaddr*)&serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
 		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
 	}
 
@@ -47,6 +47,10 @@ ServerNetwork::ServerNetwork()
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
 	packetsIn = vector<Packet>();
+
+	//call game entity initalization
+	initEntities();
+
 }
 
 ServerNetwork::~ServerNetwork()
@@ -57,6 +61,15 @@ ServerNetwork::~ServerNetwork()
 	closesocket(udp);
 	WSACleanup();
 
+}
+
+void ServerNetwork::initEntities()
+{
+	//creates 3 players
+	for (int counter = 1; counter <= 3; counter++) {
+		EntityData playerData = EntityData(counter, Player);
+		entities.push_back(playerData);
+	}
 }
 
 void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length)
@@ -73,7 +86,9 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 
 		inet_ntop(AF_INET, &(ConnectedUsers[sender - 1].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
 		ConnectedUsers[sender - 1].clientIP = str;
-		cout << "Client " << ConnectedUsers[sender - 1].index  << " has connected."<< endl;
+		cout << "Client " << ConnectedUsers[sender - 1].index << " has connected." << endl;
+
+
 	}
 	else {
 		cout << "Connection Error";
@@ -83,20 +98,19 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 void ServerNetwork::startUpdates()
 {
 	cout << "Server Running..." << endl;
-
-
-		while (listening) {
+	while (listening) {
 
 		fd_set copy = master;
 		int socketCount = select(0, &copy, nullptr, nullptr, nullptr);
 
+		//handle all active sockets
 		for (int i = 0; i < socketCount; i++)
 		{
 			cout << "Packet Recieved:";
 
 			SOCKET sock = copy.fd_array[i];
 
-			//create new client profile
+			//TCP New Connection Listener
 			if (sock == tcp)
 			{
 				cout << "TCP Connection" << endl;
@@ -126,28 +140,29 @@ void ServerNetwork::startUpdates()
 				sendTo(initPack, client);
 
 			}
+			//UDP Input Socket
 			else if (sock == udp) {
 				char* buf = new char[MAX_PACKET_SIZE];
 
+				//recieve packet from socket
 				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &clientLength);
 				if (length == SOCKET_ERROR) {
 					cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
 				}
-
-				cout << "UDP ";
-
-				if (length != SOCKET_ERROR) {
-					Packet packet;
-					std::vector<std::string> parsedData;
-
+				else {
 					int i = 0;
+					//handle all packets
 					while (i < (unsigned int)length) {
+
+						//deseralize socket data into packet
+						Packet packet;
 						packet.deserialize(&(buf[i]));
 						i += sizeof(Packet);
 
-						switch (packet.packet_type) {
-						case PacketType::INIT_CONNECTION:
-							cout << "Connection" << endl;
+						//process connection packet
+						if (packet.packet_type == PacketType::INIT_CONNECTION) {
+							cout << "UDP Connection" << endl;
+							std::vector<std::string> parsedData;
 
 							//tokenize
 							parsedData = Tokenizer::tokenize(',', packet.data);
@@ -155,24 +170,20 @@ void ServerNetwork::startUpdates()
 
 							acceptNewClient(parsedData, serverUDP, clientLength);
 							break;
-						case PacketType::MESSAGE:
-							cout << "Message" << endl;
-							relay(packet, packet.sender);
-							break;
-
-						default:
-							break;
+						}
+						else {
+							//process if not connection
+							ProcessUDP(packet);
 						}
 					}
 				}
 			}
+			//TCP Input Sockets
 			else {
-
-				cout << "TCP ";
-
 				char* buf = new char[MAX_PACKET_SIZE];
 
 				int length = recv(sock, buf, MAX_PACKET_SIZE, 0);
+				//handles disconnection packets
 				if (length <= 0)
 				{
 					cout << "Disconnection" << endl;
@@ -187,31 +198,17 @@ void ServerNetwork::startUpdates()
 					// Drop the client
 					closesocket(sock);
 					FD_CLR(sock, &master);
-				}else if (length == SOCKET_ERROR) {
+				}
+				else if (length == SOCKET_ERROR) {
 					cout << "Recieve Error: " << WSAGetLastError() << endl;
 				}
 				else {
+					//process packet data
 					Packet packet;
-					std::vector<std::string> parsedData;
+					packet.deserialize(&(buf[i]));
 
-					int i = 0;
-					while (i < (unsigned int)length) {
-						packet.deserialize(&(buf[i]));
-						i += sizeof(Packet);
+					ProcessTCP(packet);
 
-						switch (packet.packet_type) {
-						case PacketType::INIT_CONNECTION:
-							cout << "Error: Incomming connection packet through invalid TCP channels";
-							break;
-						case PacketType::MESSAGE:
-							cout << "Message" << endl;
-
-							relay(packet, packet.sender);
-							break;
-						default:
-							break;
-						}
-					}
 				}
 			}
 		}
@@ -226,7 +223,7 @@ void ServerNetwork::sendToAll(Packet pack)
 
 		pack.serialize(packet_data);
 
-		int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)& client.udpAddress, client.clientLength);
+		int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&client.udpAddress, client.clientLength);
 		if (sendOK == SOCKET_ERROR) {
 			cout << "Send Error: " << WSAGetLastError() << endl;
 		}
@@ -241,11 +238,11 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 
 	pack.serialize(packet_data);
 
-	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)& ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
+	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 	}
-	
+
 }
 
 
@@ -263,10 +260,105 @@ void ServerNetwork::sendTo(Packet pack, SOCKET client)
 	}
 }
 
+//processes all TCP Packets
+void ServerNetwork::ProcessTCP(Packet pack)
+{
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		cout << "Error: Incomming connection packet through invalid TCP channels";
+		break;
+	case PacketType::MESSAGE:
+		cout << "Message" << endl;
+
+		relay(pack, pack.sender);
+		break;
+	case PacketType::PLAYER_DATA:
+
+
+		break;
+	case PacketType::WEAPON_DATA:
+		cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
+		break;
+	case PacketType::ENVIRONMENT_DAMAGE:
+		cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
+		break;
+	case PacketType::DROID_POSITION:
+
+
+		break;
+	case PacketType::BUILD_ENTITY:
+		cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
+		break;
+	case PacketType::KILL_ENTITY:
+		cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
+		break;
+	case PacketType::GAME_STATE:
+		cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
+		break;
+	case PacketType::PLAYER_DAMAGE:
+		cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
+		break;
+	case PacketType::TURRET_DATA:
+
+
+		break;
+
+
+	default:
+		cout << "Error: Unhandled Packet Type";
+		break;
+	}
+
+
+}
+
+//processes all UDP Packets
+void ServerNetwork::ProcessUDP(Packet pack)
+{
+	std::vector<std::string> parsedData;
+	parsedData = Tokenizer::tokenize(',', pack.data);
+
+	//packet processing 
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		cout << "Data Pipeline Error: INIT Connection not handled correctly";
+		break;
+	case PacketType::MESSAGE:
+		//cout << "Message" << endl;
+		relay(pack, pack.sender);
+		break;
+	case PacketType::PLAYER_DATA:
+		cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
+		break;
+	case PacketType::WEAPON_DATA:
+		break;
+	case PacketType::ENVIRONMENT_DAMAGE:
+		break;
+	case PacketType::DROID_POSITION:
+		cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
+		break;
+	case PacketType::BUILD_ENTITY:
+		break;
+	case PacketType::KILL_ENTITY:
+		break;
+	case PacketType::GAME_STATE:
+		break;
+	case PacketType::PLAYER_DAMAGE:
+		break;
+	case PacketType::TURRET_DATA:
+		cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
+		break;
+
+	default:
+		cout << "Error: Unhandled Packet Type";
+		break;
+	}
+}
+
 void ServerNetwork::relay(Packet pack, int clientID, bool useTCP)
 {
 	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
-		
+
 		if (counter + 1 == clientID) {
 			continue;
 		}
