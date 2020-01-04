@@ -213,7 +213,6 @@ void ServerNetwork::startUpdates()
 						}
 					}
 				}
-
 			}
 		}
 	}

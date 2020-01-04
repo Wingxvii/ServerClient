@@ -173,7 +173,6 @@ void ClientNetwork::startUpdates()
 			}
 			messagesIn.clear();
 		}
-
 		});
 	udpUpdate.detach();
 

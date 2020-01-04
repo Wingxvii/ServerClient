@@ -45,12 +45,6 @@ public:
 
 	vector<Packet> packetsIn;
 
-	vector<Packet> packets1In;	//RTS
-	vector<Packet> packets2In;	//FPS1
-	vector<Packet> packets3In;	//FPS2
-	vector<Packet> packets4In;	//FPS3
-
-
 	int clientCount = 0;
 
 	std::vector<UserProfile> ConnectedUsers;
@@ -64,13 +58,14 @@ public:
 
 	//send to all clients
 	void sendToAll(Packet pack);
-	//send to sepific client
+	//send to sepific client(udp) (should not be used)
 	void sendTo(Packet pack, int clientID);
+
+
 	//send to all except a client
 	void relay(Packet pack, int clientID, bool useTCP = false);
 	//print to cout
 	void printOut(Packet pack, int clientID);
-
 	//tcp send to
 	void sendTo(Packet pack, SOCKET client);};
 
