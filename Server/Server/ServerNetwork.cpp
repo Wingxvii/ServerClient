@@ -48,8 +48,6 @@ ServerNetwork::ServerNetwork()
 	ConnectedUsers = std::vector<UserProfile>();
 	packetsIn = vector<Packet>();
 
-	//call game entity initalization
-	initEntities();
 
 }
 
@@ -63,30 +61,21 @@ ServerNetwork::~ServerNetwork()
 
 }
 
-void ServerNetwork::initEntities()
-{
-	//creates 3 players
-	for (int counter = 1; counter <= 3; counter++) {
-		EntityData playerData = EntityData(counter, Player);
-		entities.push_back(playerData);
-	}
-}
-
 void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length)
 {
 	//processing must be done here
 	int sender = std::stoi(data[0]);
-	if (sender != 0 && sender <= ConnectedUsers.size()) {
+	if (sender < ConnectedUsers.size()) {
 
-		ConnectedUsers[sender - 1].udpAddress = serverUDP;
-		ConnectedUsers[sender - 1].clientLength = clientLength;
-		ConnectedUsers[sender - 1].active = true;
+		ConnectedUsers[sender].udpAddress = serverUDP;
+		ConnectedUsers[sender].clientLength = clientLength;
+		ConnectedUsers[sender].active = true;
 
 		char str[INET6_ADDRSTRLEN];
 
-		inet_ntop(AF_INET, &(ConnectedUsers[sender - 1].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
-		ConnectedUsers[sender - 1].clientIP = str;
-		cout << "Client " << ConnectedUsers[sender - 1].index << " has connected." << endl;
+		inet_ntop(AF_INET, &(ConnectedUsers[sender].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
+		ConnectedUsers[sender].clientIP = str;
+		cout << "Client " << ConnectedUsers[sender].index << " has connected." << endl;
 
 
 	}
@@ -123,8 +112,8 @@ void ServerNetwork::startUpdates()
 				newProfile.tcpSocket = client;
 
 				if (clientCount < 99) {
-					clientCount++;
 					newProfile.index = clientCount;
+					clientCount++;
 				}
 
 				// Add the new connection to the list of connected clients
@@ -263,28 +252,72 @@ void ServerNetwork::sendTo(Packet pack, SOCKET client)
 //processes all TCP Packets
 void ServerNetwork::ProcessTCP(Packet pack)
 {
+	std::vector<std::string> parsedData;
+
+	//packet processing 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
-		cout << "Error: Incomming connection packet through invalid TCP channels";
+		cout << "Data Pipeline Error: INIT Connection not handled correctly";
 		break;
+
+	//relay the data
 	case PacketType::MESSAGE:
-		cout << "Message" << endl;
-
-		relay(pack, pack.sender);
+	case PacketType::WEAPON_DATA:
+	case PacketType::BUILD_ENTITY:
+	case PacketType::KILL_ENTITY:
+	case PacketType::GAME_STATE:
+		relay(pack, true);
 		break;
+	
+	//send the data to RTS player
+	case PacketType::ENVIRONMENT_DAMAGE:
+		sendTo(pack, ConnectedUsers[0].tcpSocket);
+		break;
+
+	//send the data to sepific player
+	case PacketType::PLAYER_DAMAGE:
+		parsedData = Tokenizer::tokenize(',', pack.data);
+		sendTo(pack, stoi(parsedData[0]));
+		break;
+
 	case PacketType::PLAYER_DATA:
+		cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
+		break;
+	case PacketType::DROID_POSITION:
+		cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
+		break;
+	case PacketType::TURRET_DATA:
+		cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
+		break;
+	default:
+		cout << "Error: Unhandled Packet Type";
+		break;
+	}
+
+}
+
+//processes all UDP Packets
+void ServerNetwork::ProcessUDP(Packet pack)
+{
+	switch (pack.packet_type) {
+
+	//relay the data to all clients
+	case PacketType::MESSAGE:
+	case PacketType::PLAYER_DATA:
+	case PacketType::DROID_POSITION:
+	case PacketType::TURRET_DATA:
+		relay(pack, false);
+		break;
 
 
+	case PacketType::INIT_CONNECTION:
+		cout << "Error: Incomming connection packet through invalid TCP channels";
 		break;
 	case PacketType::WEAPON_DATA:
 		cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
 		break;
 	case PacketType::ENVIRONMENT_DAMAGE:
 		cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
-		break;
-	case PacketType::DROID_POSITION:
-
-
 		break;
 	case PacketType::BUILD_ENTITY:
 		cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
@@ -298,68 +331,17 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	case PacketType::PLAYER_DAMAGE:
 		cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
 		break;
-	case PacketType::TURRET_DATA:
-
-
-		break;
-
-
-	default:
-		cout << "Error: Unhandled Packet Type";
-		break;
-	}
-
-
-}
-
-//processes all UDP Packets
-void ServerNetwork::ProcessUDP(Packet pack)
-{
-	std::vector<std::string> parsedData;
-	parsedData = Tokenizer::tokenize(',', pack.data);
-
-	//packet processing 
-	switch (pack.packet_type) {
-	case PacketType::INIT_CONNECTION:
-		cout << "Data Pipeline Error: INIT Connection not handled correctly";
-		break;
-	case PacketType::MESSAGE:
-		//cout << "Message" << endl;
-		relay(pack, pack.sender);
-		break;
-	case PacketType::PLAYER_DATA:
-		cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
-		break;
-	case PacketType::WEAPON_DATA:
-		break;
-	case PacketType::ENVIRONMENT_DAMAGE:
-		break;
-	case PacketType::DROID_POSITION:
-		cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
-		break;
-	case PacketType::BUILD_ENTITY:
-		break;
-	case PacketType::KILL_ENTITY:
-		break;
-	case PacketType::GAME_STATE:
-		break;
-	case PacketType::PLAYER_DAMAGE:
-		break;
-	case PacketType::TURRET_DATA:
-		cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
-		break;
-
 	default:
 		cout << "Error: Unhandled Packet Type";
 		break;
 	}
 }
 
-void ServerNetwork::relay(Packet pack, int clientID, bool useTCP)
+void ServerNetwork::relay(Packet pack, bool useTCP)
 {
 	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
 
-		if (counter + 1 == clientID) {
+		if (counter == pack.sender) {
 			continue;
 		}
 		const unsigned int packet_size = sizeof(pack);

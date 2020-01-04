@@ -49,9 +49,7 @@ public:
 
 	std::vector<UserProfile> ConnectedUsers;
 	
-	//server stored game data
-	std::vector<EntityData> entities;
-
+	//std::vector<EntityData> entities;
 
 public:
 	//initalize the entity game data
@@ -70,7 +68,7 @@ public:
 
 
 	//send to all except a client
-	void relay(Packet pack, int clientID, bool useTCP = false);
+	void relay(Packet pack, bool useTCP = false);
 	//print to cout
 	void printOut(Packet pack, int clientID);
 	//tcp send to

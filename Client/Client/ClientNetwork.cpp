@@ -117,61 +117,13 @@ void ClientNetwork::startUpdates()
 			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				std::vector<std::string> parsedData;
-
 				int i = 0;
 				while (i < (unsigned int)length) {
-					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
-					parsedData = tokenize(',', packet.data);
-					parsedData.insert(parsedData.begin(), to_string(packet.sender));
-
-					switch (packet.packet_type) {
-					case PacketType::INIT_CONNECTION:
-						connectionsIn.push_back(parsedData);
-						break;
-					case PacketType::MESSAGE:			
-						messagesIn.push_back(parsedData);
-						break;
-					}
+					packet.deserialize(&(buf[i]));
+					ProcessUDP(packet);
 				}
 			}
-
-			//process connections
-			for (std::vector<std::string> parsedData : connectionsIn) {
-				int sender = std::stoi(parsedData[0]);
-
-				//filter by sender
-				if (sender == 0) {
-					index = std::stof(parsedData[1]);
-					cout << "Response Recieved" << endl;
-				}
-				else {
-					//do nothing
-				}
-			}
-			connectionsIn.clear();
-			//process messages
-			for (std::vector<std::string> parsedData : messagesIn) {
-				int sender = std::stoi(parsedData[0]);
-
-				//filter by sender
-				if (sender == 0) {
-					string message = "";
-					for (int counter = 1; counter < parsedData.size(); counter++){
-						message = message + parsedData[counter];
-					}
-					cout << "Message Recieved from Server :" << message << endl;
-				}
-				else {
-					string message = "";
-					for (int counter = 1; counter < parsedData.size(); counter++) {
-						message = message + parsedData[counter];
-					}
-					cout << "Message Recieved from Client"<< parsedData[0] << " :" << message << endl;
-				}
-			}
-			messagesIn.clear();
 		}
 		});
 	udpUpdate.detach();
@@ -257,4 +209,51 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 		}
 	}
 	return temp;
+}
+
+void ClientNetwork::ProcessTCP(Packet pack)
+{
+}
+
+void ClientNetwork::ProcessUDP(Packet pack)
+{
+	std::vector<std::string> parsedData;
+	parsedData = tokenize(',', pack.data);
+
+
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		index = std::stof(parsedData[0]);
+		cout << "Connected." << endl;
+		break;
+	case PacketType::MESSAGE:
+		string message = "";
+		for (int counter = 0; counter < parsedData.size(); counter++) {
+			message = message + parsedData[counter];
+		}
+		cout << "Message Recieved from user " << pack.sender << " :" << message << endl;
+		break;
+	case PacketType::PLAYER_DATA:
+		break;
+	case PacketType::WEAPON_DATA:
+		break;
+	case PacketType::ENVIRONMENT_DAMAGE:
+		break;
+	case PacketType::DROID_POSITION:
+		break;
+	case PacketType::BUILD_ENTITY:
+		break;
+	case PacketType::KILL_ENTITY:
+		break;
+	case PacketType::GAME_STATE:
+		break;
+	case PacketType::PLAYER_DAMAGE:
+		break;
+	case PacketType::TURRET_DATA:
+		break;
+
+	default:
+		break;
+	}
+
 }

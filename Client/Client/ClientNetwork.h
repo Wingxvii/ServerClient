@@ -25,9 +25,6 @@ public:
 
 	bool listening = true;
 
-	vector<std::vector<std::string>> connectionsIn;
-	vector<std::vector<std::string>> messagesIn;
-
 	//client details
 	string addressDefault = "127.0.0.1";
 	string ipActual = "";
@@ -44,6 +41,9 @@ public:
 
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
+
+	void ProcessTCP(Packet pack);
+	void ProcessUDP(Packet pack);
 
 
 };
