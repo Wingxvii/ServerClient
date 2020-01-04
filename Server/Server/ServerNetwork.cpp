@@ -123,7 +123,7 @@ void ServerNetwork::startUpdates()
 
 				//send outgoing connection packet back to client
 				Packet initPack;
-				initPack.sender = 0;
+				initPack.sender = -1;
 				initPack.packet_type = INIT_CONNECTION;
 				strcpy_s(initPack.data, (to_string(newProfile.index) + ",").c_str() + '\0');
 				sendTo(initPack, client);

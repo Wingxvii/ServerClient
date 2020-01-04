@@ -29,12 +29,6 @@ ClientNetwork::ClientNetwork()
 	}
 	serverTCP.sin_family = AF_INET;
 	serverTCP.sin_port = htons(54223);
-
-	//3. setup socket
-
-	//initalization
-	connectionsIn = vector<std::vector<std::string>>();
-	messagesIn = vector<std::vector<std::string>>();
 }
 
 ClientNetwork::~ClientNetwork()
@@ -132,54 +126,15 @@ void ClientNetwork::startUpdates()
 		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (true) {
-			//recieve messages
+			//recieve packets
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				std::vector<std::string> parsedData;
-
 				int i = 0;
 				while (i < (unsigned int)length) {
 					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
-					parsedData = tokenize(',', packet.data);
-					parsedData.insert(parsedData.begin(), to_string(packet.sender));
-					int sender = std::stoi(parsedData[0]);
-
-					switch (packet.packet_type) {
-					case PacketType::INIT_CONNECTION:
-						//filter by sender
-						if (sender == 0) {
-							index = std::stof(parsedData[1]);
-							cout << "Innitial Connection Recieved, index:" + parsedData[1] << endl;
-
-							//connect to udp
-							inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
-
-							sendData(INIT_CONNECTION, to_string(index), false);
-						}
-						else {
-							//do nothing
-						}
-						break;
-					case PacketType::MESSAGE:
-						//filter by sender
-						if (sender == 0) {
-							string message = "";
-							for (int counter = 1; counter < parsedData.size(); counter++) {
-								message = message + parsedData[counter];
-							}
-							cout << "Message Recieved from Server :" << message << endl;
-						}
-						else {
-							string message = "";
-							for (int counter = 1; counter < parsedData.size(); counter++) {
-								message = message + parsedData[counter];
-							}
-							cout << "Message Recieved from Client" << parsedData[0] << " :" << message << endl;
-						}
-						break;
-					}
+					ProcessTCP(packet);
 				}
 			}
 		}
@@ -213,12 +168,66 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 
 void ClientNetwork::ProcessTCP(Packet pack)
 {
+	std::vector<std::string> parsedData;
+	parsedData = tokenize(',', pack.data);
+	//all needed data types
+	string message = "";
+
+
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		//filter by sender
+		if (pack.sender == -1) {
+			index = std::stof(parsedData[0]);
+			cout << "Innitial Connection Recieved, index:" + parsedData[0] << endl;
+			//connect to udp
+			inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
+
+			sendData(INIT_CONNECTION, to_string(index), false);
+		}
+		else {
+			//do nothing
+		}
+		break;
+	case PacketType::MESSAGE:
+		for (int counter = 0; counter < parsedData.size(); counter++) {
+			message = message + parsedData[counter];
+		}
+		cout << "Message Recieved from user " << pack.sender << " :" << message << endl;
+		break;
+	case PacketType::PLAYER_DATA:
+		break;
+	case PacketType::WEAPON_DATA:
+		break;
+	case PacketType::ENVIRONMENT_DAMAGE:
+		break;
+	case PacketType::DROID_POSITION:
+		break;
+	case PacketType::BUILD_ENTITY:
+		break;
+	case PacketType::KILL_ENTITY:
+		break;
+	case PacketType::GAME_STATE:
+		break;
+	case PacketType::PLAYER_DAMAGE:
+		break;
+	case PacketType::TURRET_DATA:
+		break;
+
+	default:
+		break;
+	}
+
+
 }
 
 void ClientNetwork::ProcessUDP(Packet pack)
 {
 	std::vector<std::string> parsedData;
 	parsedData = tokenize(',', pack.data);
+
+	//all needed data types
+	string message = "";
 
 
 	switch (pack.packet_type) {
@@ -227,7 +236,6 @@ void ClientNetwork::ProcessUDP(Packet pack)
 		cout << "Connected." << endl;
 		break;
 	case PacketType::MESSAGE:
-		string message = "";
 		for (int counter = 0; counter < parsedData.size(); counter++) {
 			message = message + parsedData[counter];
 		}
