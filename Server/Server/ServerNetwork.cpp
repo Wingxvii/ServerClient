@@ -23,9 +23,13 @@ ServerNetwork::ServerNetwork()
 		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
 	}
 
-
 	//TCP socket connection
-	SOCKET tcp = socket(AF_INET, SOCK_DGRAM, 0);
+	tcp = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp == INVALID_SOCKET)
+	{
+		cerr << "Can't create a socket!" << endl;
+	}
+
 	//socket setup
 	serverTCP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverTCP.sin_family = AF_INET;
@@ -37,7 +41,7 @@ ServerNetwork::ServerNetwork()
 
 	//zero the master list, then add in the listener socket
 	FD_ZERO(&master);
-	FD_SET(listening, &master);
+	FD_SET(tcp, &master);
 	
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
@@ -47,23 +51,27 @@ ServerNetwork::ServerNetwork()
 ServerNetwork::~ServerNetwork()
 {
 	listening = false;
+	FD_CLR(tcp, &master);
+	closesocket(tcp);
 	closesocket(udp);
+	WSACleanup();
+
 }
 
 void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length)
 {
 	//processing must be done here
 	int sender = std::stoi(data[0]);
-	if (sender != 0 && sender < ConnectedUsers.size()) {
+	if (sender != 0 && sender <= ConnectedUsers.size()) {
 
-		ConnectedUsers[sender].udpAddress = serverUDP;
-		ConnectedUsers[sender].clientLength = clientLength;
+		ConnectedUsers[sender - 1].udpAddress = serverUDP;
+		ConnectedUsers[sender - 1].clientLength = clientLength;
 
 		char str[INET6_ADDRSTRLEN];
 
-		inet_ntop(AF_INET, &(ConnectedUsers[sender].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
-		ConnectedUsers[sender].clientIP = str;
-		cout << "Client Accepted " << ConnectedUsers[sender].index << endl;
+		inet_ntop(AF_INET, &(ConnectedUsers[sender - 1].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
+		ConnectedUsers[sender - 1].clientIP = str;
+		cout << "Client Accepted " << ConnectedUsers[sender - 1].index << endl;
 	}
 	else {
 		cout << "Connection Error";
@@ -76,14 +84,15 @@ void ServerNetwork::startUpdates()
 
 	thread udpUpdate = thread([&]() {
 
-		char* buf = new char[DEFAULT_DATA_SIZE];
-		ZeroMemory(buf, DEFAULT_DATA_SIZE);
+		char* buf = new char[MAX_PACKET_SIZE];
 
 		while (listening) {
-			int length = recvfrom(udp, buf, DEFAULT_DATA_SIZE, 0, (sockaddr*)& serverUDP, &clientLength);
+			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverUDP, &clientLength);
 			if (length == SOCKET_ERROR) {
-				cout << "Recieve Error: " << WSAGetLastError() << endl;
+				cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
 			}
+
+			cout << "UDP Packet Recieved" << endl;
 
 			if (length != SOCKET_ERROR) {
 				Packet packet;
@@ -125,13 +134,19 @@ void ServerNetwork::startUpdates()
 
 		for (int i = 0; i < socketCount; i++)
 		{
+			cout << "TCP Packet Recieved: ";
+
 			SOCKET sock = copy.fd_array[i];
 
 			//create new client profile
-			if (sock == listening)
+			if (sock == tcp)
 			{
+
+				cout << "Connection" << endl;
+
+
 				// Accept a new connection
-				SOCKET client = accept(listening, nullptr, nullptr);
+				SOCKET client = accept(tcp, nullptr, nullptr);
 
 				//create new profile
 				UserProfile newProfile = UserProfile();
@@ -146,21 +161,32 @@ void ServerNetwork::startUpdates()
 				FD_SET(client, &master);
 				ConnectedUsers.push_back(newProfile);
 
+
 				//send outgoing connection packet back to client
 				Packet initPack;
 				initPack.sender = 0;
 				initPack.packet_type = INIT_CONNECTION;
 				strcpy_s(initPack.data, (to_string(newProfile.index) + ",").c_str() + '\0');
 
+				cout << "sending index: " + to_string(newProfile.index)<< endl;
 				sendTo(initPack, client);
+
 			}
 			else {
-				char* buf = new char[DEFAULT_DATA_SIZE];
-				ZeroMemory(buf, DEFAULT_DATA_SIZE);
 
-				int length = recv(sock, buf, DEFAULT_DATA_SIZE, 0);
+				cout << "Message" << endl;
 
-				if (length == SOCKET_ERROR) {
+				char* buf = new char[MAX_PACKET_SIZE];
+
+				int length = recv(sock, buf, MAX_PACKET_SIZE, 0);
+				if (length <= 0)
+				{
+					cout << "Client Disconnected" << endl;
+
+					// Drop the client
+					closesocket(sock);
+					FD_CLR(sock, &master);
+				}else if (length == SOCKET_ERROR) {
 					cout << "Recieve Error: " << WSAGetLastError() << endl;
 				}
 				else {
@@ -184,8 +210,6 @@ void ServerNetwork::startUpdates()
 						}
 					}
 				}
-
-
 
 			}
 		}

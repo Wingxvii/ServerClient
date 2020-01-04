@@ -32,6 +32,7 @@ public:
 	sockaddr_in serverUDP;
 	int clientLength;
 
+	SOCKET tcp;
 	sockaddr_in serverTCP;
 	//master list of tracked TCP sockets
 	fd_set master;

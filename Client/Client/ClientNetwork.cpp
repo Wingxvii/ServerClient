@@ -18,12 +18,19 @@ ClientNetwork::ClientNetwork()
 	serverUDP.sin_port = htons(54222);
 	serverlength = sizeof(serverUDP);
 
+	udp = socket(AF_INET, SOCK_DGRAM, 0);
+
+	tcp = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp == INVALID_SOCKET)
+	{
+		cerr << "Can't create socket, Err #" << WSAGetLastError() << endl;
+		WSACleanup();
+		return;
+	}
 	serverTCP.sin_family = AF_INET;
 	serverTCP.sin_port = htons(54223);
 
 	//3. setup socket
-	udp = socket(AF_INET, SOCK_DGRAM, 0);
-	tcp = socket(AF_INET, SOCK_STREAM, 0);
 
 	//initalization
 	connectionsIn = vector<std::vector<std::string>>();
@@ -33,7 +40,9 @@ ClientNetwork::ClientNetwork()
 ClientNetwork::~ClientNetwork()
 {
 	listening = false;
+	closesocket(tcp);
 	closesocket(udp);
+	WSACleanup();
 }
 
 int ClientNetwork::connectToServer()
@@ -43,7 +52,7 @@ int ClientNetwork::connectToServer()
 
 int ClientNetwork::connectToServer(string ip)
 {
-	inet_pton(AF_INET, ip.c_str(), &serverUDP.sin_addr);		//connecting to the udp server
+	ipActual = ip;
 
 	inet_pton(AF_INET, ip.c_str(), &serverTCP.sin_addr);		//connecting to the tcp server
 
@@ -56,8 +65,6 @@ int ClientNetwork::connectToServer(string ip)
 		return SOCKET_ERROR;
 	}
 
-	//init message
-	sendData(INIT_CONNECTION, "0", true);
 	//ping and determine client index
 	return 0;
 }
@@ -77,7 +84,7 @@ int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 	//seralize
 	packet.serialize(packet_data);
 
-	int sendOK;
+	int sendOK = 0;
 
 	//udp send
 	if (!useTCP) {
@@ -193,7 +200,11 @@ void ClientNetwork::startUpdates()
 						//filter by sender
 						if (sender == 0) {
 							index = std::stof(parsedData[1]);
-							cout << "Innitial Connection Recieved" << endl;
+							cout << "Innitial Connection Recieved, index:" + parsedData[1] << endl;
+
+							//connect to udp
+							inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
+
 							sendData(INIT_CONNECTION, to_string(index), false);
 						}
 						else {

@@ -37,6 +37,7 @@ public:
 
 	//client details
 	string addressDefault = "127.0.0.1";
+	string ipActual = "";
 	int index = 0;
 
 public:

@@ -1,6 +1,6 @@
 ﻿  ClientNetwork.cpp
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(116,14): warning C4018: '<': signed/unsigned mismatch
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(139,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(184,14): warning C4018: '<': signed/unsigned mismatch
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(195,25): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(123,14): warning C4018: '<': signed/unsigned mismatch
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(146,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(191,14): warning C4018: '<': signed/unsigned mismatch
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(202,25): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
   Client.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\x64\Debug\Client.exe
