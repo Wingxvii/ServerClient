@@ -1,40 +1,46 @@
 #pragma once
-#define MAX_PACKET_SIZE 10000
+#define MAX_PACKET_SIZE 6000
 #define DEFAULT_DATA_SIZE 5700
 
 #include <stdio.h>
 #include <stdlib.h>   
 #include <string>
+#include <ws2tcpip.h>
 
+#pragma comment (lib, "ws2_32.lib")
 
 enum PacketType {
 	//initialization connection
 	INIT_CONNECTION = 0,
-
 	//single string
 	MESSAGE = 1,
 
-	//FPS DATA TYPES
+	//FPS Managed Data
 
-	//2vec3 + int
-	PLAYERDATA = 2,
-	//int
-	WEAPONSTATE = 3,
-	//int
-	DAMAGEDEALT = 4,
+	//data of players
+	PLAYER_DATA = 2,
+	//player weapon switch
+	WEAPON_DATA = 3,
+	//environment damage
+	ENVIRONMENT_DAMAGE = 4,
 
-	//RTS DATA TYPES
+	//RTS Managed Data
 
-	//vec4[0-100]
-	DROIDLOCATIONS = 5,
-	//2int + vec3
-	BUILD = 6,
-	//int
-	KILL = 7,
-	//int
-	GAMESTATE = 8,
+	//data of all droids (up to 100)
+	DROID_POSITION = 5,
+	//entity built
+	BUILD_ENTITY = 7,
+	//entity killed
+	KILL_ENTITY = 8,
+	//game state
+	GAME_STATE = 9,
+	//player damaged
+	PLAYER_DAMAGE = 10,
+	//data of all turrets
+	TURRET_DATA = 11,
 
 };
+
 
 struct Packet {
 

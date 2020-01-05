@@ -1,28 +1,5 @@
 #include "ClientNetwork.h"
 
-//test function
-CNET_H int Add(int a, int b) {
-	return a + b;
-}
-//need wrappers for everything
-
-CNET_H void RecieveString(const char* str) {
-	string y = string(str);
-	y += "Recieved ";
-}
-
-CNET_H void SendString(char* str, int length)
-{
-	string x = "hello";
-	strcpy_s(str, length, x.c_str());
-}
-
-
-/*
-Client Side Function Wrappers Start Now
-############################################################
-*/
-
 
 //constructor wrapper
 CNET_H ClientNetwork* CreateClient() {
@@ -36,7 +13,7 @@ CNET_H void DeleteClient(ClientNetwork* client) {
 CNET_H void Connect(char* ip, ClientNetwork* client)
 {
 	string _ip = string(ip);
-	client->connect(_ip);
+	client->connectToServer(_ip);
 }
 
 CNET_H void StartUpdating(ClientNetwork* client)
@@ -44,17 +21,10 @@ CNET_H void StartUpdating(ClientNetwork* client)
 	client->startUpdates();
 }
 
-CNET_H void SendData(int type, char* message,  ClientNetwork* client)
+CNET_H void SendData(int type, char* message, bool useTCP, ClientNetwork* client)
 {
-	client->sendData((PacketType)type, message);
+	client->sendData((PacketType)type, message, useTCP);
 }
-
-CNET_H void TargetSend(int type, char* message, ClientNetwork* client, int clientNum)
-{
-	client->sendData((PacketType)type, message);
-
-}
-
 
 CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
 {
@@ -66,12 +36,6 @@ CNET_H int GetPlayerNumber(ClientNetwork* client)
 	return client->index;
 }
 
-
-
-/*
-Client Network Functions Start Now
-############################################################
-*/
 
 ClientNetwork::ClientNetwork()
 {
@@ -87,40 +51,56 @@ ClientNetwork::ClientNetwork()
 	}
 
 	//2. setup server information
-	server.sin_family = AF_INET;
-	server.sin_port = htons(54222);
-	serverlength = sizeof(server);
+	serverUDP.sin_family = AF_INET;
+	serverUDP.sin_port = htons(54222);
+	serverlength = sizeof(serverUDP);
 
-	//3. setup socket
-	client = socket(AF_INET, SOCK_DGRAM, 0);
+	udp = socket(AF_INET, SOCK_DGRAM, 0);
 
-	//initalization
-	connectionsIn = vector<std::vector<std::string>>();
-	messagesIn = vector<std::vector<std::string>>();
-
+	tcp = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp == INVALID_SOCKET)
+	{
+		cerr << "Can't create socket, Err #" << WSAGetLastError() << endl;
+		WSACleanup();
+		return;
+	}
+	serverTCP.sin_family = AF_INET;
+	serverTCP.sin_port = htons(54223);
 }
 
 ClientNetwork::~ClientNetwork()
 {
 	listening = false;
-	closesocket(client);
+	closesocket(tcp);
+	closesocket(udp);
+	WSACleanup();
 }
 
-int ClientNetwork::connect()
+int ClientNetwork::connectToServer()
 {
-	return connect(addressDefault);
+	return connectToServer(addressDefault);
 }
 
-int ClientNetwork::connect(string ip)
+int ClientNetwork::connectToServer(string ip)
 {
-	inet_pton(AF_INET, ip.c_str(), &server.sin_addr);		//connecting to the server
-	//init message
-	sendData(INIT_CONNECTION, "0");
+	ipActual = ip;
+
+	inet_pton(AF_INET, ip.c_str(), &serverTCP.sin_addr);		//connecting to the tcp server
+
+	int connResult = connect(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP));
+	if (connResult == SOCKET_ERROR)
+	{
+		cerr << "Can't connect to server, Err #" << WSAGetLastError() << endl;
+		closesocket(tcp);
+		WSACleanup();
+		return SOCKET_ERROR;
+	}
+
 	//ping and determine client index
 	return 0;
 }
 
-int ClientNetwork::sendData(int packetType, string message)
+int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 {
 	//create packet
 	Packet packet;
@@ -135,11 +115,24 @@ int ClientNetwork::sendData(int packetType, string message)
 	//seralize
 	packet.serialize(packet_data);
 
-	//send to server
-	int sendOK = sendto(client, packet_data, packet_size, 0, (sockaddr*)& server, sizeof(server));
-	if (sendOK == SOCKET_ERROR) {
-		cout << "Send Error: " << WSAGetLastError() << endl;
-		return -1;
+	int sendOK = 0;
+
+	//udp send
+	if (!useTCP) {
+		sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&serverUDP, sizeof(serverUDP));
+		if (sendOK == SOCKET_ERROR) {
+			cout << "Send Error: " << WSAGetLastError() << endl;
+			return -1;
+		}
+	}
+	//tcp send
+	else {
+		int sendResult = send(tcp, packet_data, packet_size, 0);
+		if (sendResult == SOCKET_ERROR)
+		{
+			cout << "Send Error: " << WSAGetLastError() << endl;
+			return -1;
+		}
 	}
 	return sendOK;
 }
@@ -147,53 +140,55 @@ int ClientNetwork::sendData(int packetType, string message)
 void ClientNetwork::startUpdates()
 {
 	//multithread
-	thread listen = thread([&]() {
+	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (listening) {
-
+		while (true) {
 			//recieve messages
-			int length = recvfrom(client, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& server, &serverlength);
+			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				std::vector<std::string> parsedData;
+				int i = 0;
+				while (i < (unsigned int)length) {
+					i += sizeof(Packet);
+					packet.deserialize(&(buf[i]));
 
+					recievePacket(packet.packet_type, packet.sender, buf);
+				}
+			}
+		}
+		});
+	udpUpdate.detach();
+
+	thread tcpUpdate = thread([&]() {
+		char* buf = new char[MAX_PACKET_SIZE];
+
+		while (true) {
+			//recieve packets
+			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
+			if (length != SOCKET_ERROR) {
+				Packet packet;
 				int i = 0;
 				while (i < (unsigned int)length) {
 					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
 
-					//process connections in dll
-					if (packet.packet_type == PacketType::INIT_CONNECTION) {
-						parsedData = tokenize(',', packet.data);
-						parsedData.insert(parsedData.begin(), to_string(packet.sender));
-						connectionsIn.push_back(parsedData);
-					}
-					//process everything else in unity
-					else {
-						recievePacket(packet.packet_type, packet.sender, packet.data);
-					}
+					recievePacket(packet.packet_type, packet.sender, buf);
 				}
 			}
-			//process connections
-			for (std::vector<std::string> parsedData : connectionsIn) {
-				int sender = std::stoi(parsedData[0]);
-
-				//filter by sender
-				if (sender == 0) {
-					index = std::stof(parsedData[1]);
-				}
-				else {
-					//do nothing
-				}
-			}
-			connectionsIn.clear();
-
 		}
+
 		});
-	listen.detach();
+	tcpUpdate.detach();
+
 }
 
+int ClientNetwork::sendMessage(string message, bool useTCP)
+{
+	message = message + ",";
+
+	return sendData(MESSAGE, message, useTCP);
+}
 
 std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 {
@@ -209,3 +204,4 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 	}
 	return temp;
 }
+
