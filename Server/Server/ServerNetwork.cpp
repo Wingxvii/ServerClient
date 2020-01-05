@@ -86,7 +86,48 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 
 void ServerNetwork::startUpdates()
 {
+	
 	cout << "Server Running..." << endl;
+	thread CommandLine = thread([&]() {
+
+		while (listening) {
+			string command;
+			cin >> command;
+			if (command == "/quit") {
+				listening = false;
+			}
+			if (command == "/test1") {
+				cout << "Testing...";
+			}
+			if (command == "/test2") {
+				Packet pack;
+				pack.packet_type = MESSAGE;
+
+				string test = "test";
+
+				strcpy_s(pack.data, test.c_str() + '\0');
+				pack.sender = -1;
+
+				relay(pack, false);
+			}
+			if (command == "/test3") {
+				Packet pack;
+				pack.packet_type = MESSAGE;
+
+				string test = "test";
+
+				strcpy_s(pack.data, test.c_str() + '\0');
+				pack.sender = -1;
+
+				relay(pack, true);
+			}
+
+		}
+
+	});
+	CommandLine.detach();
+	
+
 	while (listening) {
 
 		fd_set copy = master;
@@ -262,6 +303,11 @@ void ServerNetwork::ProcessTCP(Packet pack)
 
 	//relay the data
 	case PacketType::MESSAGE:
+		parsedData = Tokenizer::tokenize(',', pack.data);
+
+		cout << "TCP Message Recieved:" << parsedData[0] << endl;
+		break;
+
 	case PacketType::WEAPON_DATA:
 	case PacketType::BUILD_ENTITY:
 	case PacketType::KILL_ENTITY:
@@ -299,10 +345,16 @@ void ServerNetwork::ProcessTCP(Packet pack)
 //processes all UDP Packets
 void ServerNetwork::ProcessUDP(Packet pack)
 {
+	std::vector<std::string> parsedData;
+
 	switch (pack.packet_type) {
 
 	//relay the data to all clients
 	case PacketType::MESSAGE:
+		parsedData = Tokenizer::tokenize(',', pack.data);
+
+		cout << "UDP Message Recieved:" << parsedData[0] << endl;
+		break;
 	case PacketType::PLAYER_DATA:
 	case PacketType::DROID_POSITION:
 	case PacketType::TURRET_DATA:

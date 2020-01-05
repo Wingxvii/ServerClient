@@ -152,8 +152,15 @@ void ClientNetwork::startUpdates()
 				while (i < (unsigned int)length) {
 					i += sizeof(Packet);
 					packet.deserialize(&(buf[i]));
+					if (packet.packet_type == INIT_CONNECTION) {
+						std::vector<std::string> parsedData;
+						parsedData = tokenize(',', packet.data);
 
-					recievePacket(packet.packet_type, packet.sender, buf);
+						index = std::stof(parsedData[0]);
+					}
+					else {
+						recievePacket(packet.packet_type, packet.sender, buf);
+					}
 				}
 			}
 		}
@@ -172,8 +179,19 @@ void ClientNetwork::startUpdates()
 				while (i < (unsigned int)length) {
 					packet.deserialize(&(buf[i]));
 					i += sizeof(Packet);
+					if (packet.packet_type == INIT_CONNECTION) {
+						std::vector<std::string> parsedData;
+						parsedData = tokenize(',', packet.data);
 
-					recievePacket(packet.packet_type, packet.sender, buf);
+						index = std::stof(parsedData[0]);
+						//connect to udp
+						inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
+
+						sendData(INIT_CONNECTION, to_string(index), false);
+					}
+					else {
+						recievePacket(packet.packet_type, packet.sender, buf);
+					}
 				}
 			}
 		}

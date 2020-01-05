@@ -45,7 +45,7 @@ enum PacketType {
 struct Packet {
 
 	unsigned int packet_type;
-	unsigned int sender = 0;
+	int sender = 0;
 	char data[DEFAULT_DATA_SIZE];
 	unsigned int id = 0;
 

@@ -102,6 +102,24 @@ int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 
 void ClientNetwork::startUpdates()
 {
+	thread CommandLine = thread([&]() {
+
+		while (listening) {
+			string command;
+			cin >> command;
+			if (command == "/quit") {
+				listening = false;
+			}
+			if (command == "/test") {
+
+				sendData(MESSAGE, "test,", false);
+			}
+		}
+
+		});
+	CommandLine.detach();
+
+
 	//multithread
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
