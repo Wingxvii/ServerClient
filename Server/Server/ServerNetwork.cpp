@@ -180,31 +180,25 @@ void ServerNetwork::startUpdates()
 					cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
 				}
 				else {
-					int i = 0;
-					//handle all packets
-					while (i < (unsigned int)length) {
+					//deseralize socket data into packet
+					Packet packet;
+					packet.deserialize(buf);
 
-						//deseralize socket data into packet
-						Packet packet;
-						packet.deserialize(&(buf[i]));
-						i += sizeof(Packet);
+					//process connection packet
+					if (packet.packet_type == PacketType::INIT_CONNECTION) {
+						cout << "UDP Connection" << endl;
+						std::vector<std::string> parsedData;
 
-						//process connection packet
-						if (packet.packet_type == PacketType::INIT_CONNECTION) {
-							cout << "UDP Connection" << endl;
-							std::vector<std::string> parsedData;
+						//tokenize
+						parsedData = Tokenizer::tokenize(',', packet.data);
+						parsedData.insert(parsedData.begin(), to_string(packet.sender));
 
-							//tokenize
-							parsedData = Tokenizer::tokenize(',', packet.data);
-							parsedData.insert(parsedData.begin(), to_string(packet.sender));
-
-							acceptNewClient(parsedData, serverUDP, clientLength);
-							break;
-						}
-						else {
-							//process if not connection
-							ProcessUDP(packet);
-						}
+						acceptNewClient(parsedData, serverUDP, clientLength);
+						break;
+					}
+					else {
+						//process if not connection
+						ProcessUDP(packet);
 					}
 				}
 			}
@@ -235,8 +229,7 @@ void ServerNetwork::startUpdates()
 				else {
 					//process packet data
 					Packet packet;
-					packet.deserialize(&(buf[i]));
-
+					packet.deserialize(buf);
 					ProcessTCP(packet);
 
 				}

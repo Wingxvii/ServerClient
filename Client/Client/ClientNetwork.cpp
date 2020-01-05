@@ -112,14 +112,12 @@ void ClientNetwork::startUpdates()
 			}
 			if (command == "/test") {
 
-				sendData(MESSAGE, "test,", false);
+				sendData(MESSAGE, "hello", false);
 			}
 		}
 
 		});
 	CommandLine.detach();
-
-
 	//multithread
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
@@ -129,12 +127,8 @@ void ClientNetwork::startUpdates()
 			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)& serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				int i = 0;
-				while (i < (unsigned int)length) {
-					i += sizeof(Packet);
-					packet.deserialize(&(buf[i]));
-					ProcessUDP(packet);
-				}
+				packet.deserialize(buf);
+				ProcessUDP(packet);
 			}
 		}
 		});
@@ -148,12 +142,8 @@ void ClientNetwork::startUpdates()
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				int i = 0;
-				while (i < (unsigned int)length) {
-					packet.deserialize(&(buf[i]));
-					i += sizeof(Packet);
-					ProcessTCP(packet);
-				}
+				packet.deserialize(buf);
+				ProcessTCP(packet);
 			}
 		}
 
@@ -164,6 +154,7 @@ void ClientNetwork::startUpdates()
 
 int ClientNetwork::sendMessage(string message, bool useTCP)
 {
+
 	message = message + ",";
 
 	return sendData(MESSAGE, message, useTCP);
@@ -181,6 +172,8 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 
 		}
 	}
+	temp.push_back(text.substr(lastTokenLocation, text.size() - 1));
+
 	return temp;
 }
 
@@ -190,7 +183,7 @@ void ClientNetwork::ProcessTCP(Packet pack)
 	parsedData = tokenize(',', pack.data);
 	//all needed data types
 	string message = "";
-
+	cout << "TCP MESSAGE RECIEVED";
 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -246,6 +239,7 @@ void ClientNetwork::ProcessUDP(Packet pack)
 
 	//all needed data types
 	string message = "";
+	cout << "UDP MESSAGE RECIEVED";
 
 
 	switch (pack.packet_type) {

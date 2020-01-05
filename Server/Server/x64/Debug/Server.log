@@ -1,3 +1,2 @@
 ﻿  ServerNetwork.cpp
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\Server\ServerNetwork.cpp(185,15): warning C4018: '<': signed/unsigned mismatch
   Server.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe

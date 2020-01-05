@@ -1,7 +1,6 @@
 ﻿  ClientNetwork.cpp
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(152,14): warning C4018: '<': signed/unsigned mismatch
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(159,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(179,14): warning C4018: '<': signed/unsigned mismatch
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(186,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(156,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(179,24): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  LINK : C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll not found or not built by the last incremental link; performing full link
      Creating library C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.lib and object C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.exp
   CNET.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll

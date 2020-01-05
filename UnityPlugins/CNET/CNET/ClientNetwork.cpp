@@ -148,19 +148,15 @@ void ClientNetwork::startUpdates()
 			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				int i = 0;
-				while (i < (unsigned int)length) {
-					i += sizeof(Packet);
-					packet.deserialize(&(buf[i]));
-					if (packet.packet_type == INIT_CONNECTION) {
-						std::vector<std::string> parsedData;
-						parsedData = tokenize(',', packet.data);
+				packet.deserialize(buf);
+				if (packet.packet_type == INIT_CONNECTION) {
+					std::vector<std::string> parsedData;
+					parsedData = tokenize(',', packet.data);
 
-						index = std::stof(parsedData[0]);
-					}
-					else {
-						recievePacket(packet.packet_type, packet.sender, buf);
-					}
+					index = std::stof(parsedData[0]);
+				}
+				else {
+					recievePacket(packet.packet_type, packet.sender, buf);
 				}
 			}
 		}
@@ -175,10 +171,7 @@ void ClientNetwork::startUpdates()
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-				int i = 0;
-				while (i < (unsigned int)length) {
-					packet.deserialize(&(buf[i]));
-					i += sizeof(Packet);
+					packet.deserialize(buf);
 					if (packet.packet_type == INIT_CONNECTION) {
 						std::vector<std::string> parsedData;
 						parsedData = tokenize(',', packet.data);
@@ -194,7 +187,6 @@ void ClientNetwork::startUpdates()
 					}
 				}
 			}
-		}
 
 		});
 	tcpUpdate.detach();
