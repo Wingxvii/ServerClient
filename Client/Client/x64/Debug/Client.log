@@ -1,4 +1,4 @@
 ﻿  ClientNetwork.cpp
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(190,21): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(245,20): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(179,21): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(234,20): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
   Client.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\x64\Debug\Client.exe

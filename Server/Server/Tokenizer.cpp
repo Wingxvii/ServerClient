@@ -13,7 +13,7 @@ std::vector<std::string> Tokenizer::tokenize(char token, std::string text)
 
 		}
 	}
-	temp.push_back(text.substr(lastTokenLocation, text.size()-1));
+	temp.push_back(text.substr(lastTokenLocation, text.size()));
 
 	return temp;
 }

@@ -102,22 +102,17 @@ int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 
 void ClientNetwork::startUpdates()
 {
+	/*
 	thread CommandLine = thread([&]() {
 
 		while (listening) {
 			string command;
 			cin >> command;
-			if (command == "/quit") {
-				listening = false;
-			}
-			if (command == "/test") {
-
-				sendData(MESSAGE, "hello", false);
-			}
 		}
 
 		});
 	CommandLine.detach();
+	*/
 	//multithread
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
@@ -152,14 +147,6 @@ void ClientNetwork::startUpdates()
 
 }
 
-int ClientNetwork::sendMessage(string message, bool useTCP)
-{
-
-	message = message + ",";
-
-	return sendData(MESSAGE, message, useTCP);
-}
-
 std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 {
 	std::vector<std::string> temp;
@@ -172,7 +159,7 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 
 		}
 	}
-	temp.push_back(text.substr(lastTokenLocation, text.size() - 1));
+	temp.push_back(text.substr(lastTokenLocation, text.size()));
 
 	return temp;
 }

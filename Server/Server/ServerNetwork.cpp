@@ -96,6 +96,15 @@ void ServerNetwork::startUpdates()
 			if (command == "/quit") {
 				listening = false;
 			}
+			if (command == "/clear") {
+				ConnectedUsers.clear();
+				clientCount = 0;
+				FD_ZERO(&master);
+				FD_SET(tcp, &master);
+				FD_SET(udp, &master);
+
+			}
+
 			if (command == "/test1") {
 				cout << "Testing...";
 			}

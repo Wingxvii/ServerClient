@@ -160,7 +160,7 @@ void ClientNetwork::startUpdates()
 				}
 			}
 		}
-		});
+	});
 	udpUpdate.detach();
 
 	thread tcpUpdate = thread([&]() {
@@ -171,35 +171,27 @@ void ClientNetwork::startUpdates()
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
-					packet.deserialize(buf);
-					if (packet.packet_type == INIT_CONNECTION) {
-						std::vector<std::string> parsedData;
-						parsedData = tokenize(',', packet.data);
+				packet.deserialize(buf);
+				if (packet.packet_type == INIT_CONNECTION) {
+					std::vector<std::string> parsedData;
+					parsedData = tokenize(',', packet.data);
 
-						index = std::stof(parsedData[0]);
-						//connect to udp
-						inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
+					index = std::stof(parsedData[0]);
+					//connect to udp
+					inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
 
-						sendData(INIT_CONNECTION, to_string(index), false);
-					}
-					else {
-						recievePacket(packet.packet_type, packet.sender, buf);
-					}
+					sendData(INIT_CONNECTION, to_string(index), false);
+				}
+				else {
+					recievePacket(packet.packet_type, packet.sender, buf);
 				}
 			}
+		}
 
-		});
+	});
 	tcpUpdate.detach();
 
 }
-
-int ClientNetwork::sendMessage(string message, bool useTCP)
-{
-	message = message + ",";
-
-	return sendData(MESSAGE, message, useTCP);
-}
-
 std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 {
 	std::vector<std::string> temp;
@@ -212,6 +204,8 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 
 		}
 	}
+	temp.push_back(text.substr(lastTokenLocation, text.size()));
+
 	return temp;
 }
 

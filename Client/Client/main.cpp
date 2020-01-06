@@ -18,10 +18,16 @@ int main() {
 
 
 	while (true) {
-		string s;
-		cin >> s;
+		string command;
+		cin >> command;
 
-		net.sendMessage(s, false);
+		if (command == "/quit") {
+			net.listening = false;
+		}
+		if (command == "/test") {
+
+			net.sendData(MESSAGE, "hello", false);
+		}
 	}
 
 

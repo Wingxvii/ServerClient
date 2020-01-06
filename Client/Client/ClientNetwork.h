@@ -34,8 +34,6 @@ public:
 	int connectToServer();
 	int connectToServer(string ip);
 
-	int sendMessage(string message, bool useTCP = false);
-
 	void startUpdates();
 	int sendData(int packetType, string message, bool useTCP = false);	//udp send data
 
