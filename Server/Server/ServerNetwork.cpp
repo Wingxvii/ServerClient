@@ -96,13 +96,19 @@ void ServerNetwork::startUpdates()
 			if (command == "/quit") {
 				listening = false;
 			}
+
+			if (command == "/open") {
+				system("START C:\\Users\\turnt\\OneDrive\\Documents\\C++\\ServerClient\\Client\\x64\\Debug\\client.exe");
+			}
+
 			if (command == "/clear") {
+			
 				ConnectedUsers.clear();
 				clientCount = 0;
 				FD_ZERO(&master);
 				FD_SET(tcp, &master);
 				FD_SET(udp, &master);
-
+				cout << "Cleared User Cache" << endl;
 			}
 
 			if (command == "/test1") {
@@ -116,7 +122,6 @@ void ServerNetwork::startUpdates()
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
-
 				relay(pack, false);
 			}
 			if (command == "/test3") {
@@ -127,7 +132,6 @@ void ServerNetwork::startUpdates()
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
-
 				relay(pack, true);
 			}
 
