@@ -156,7 +156,7 @@ void ClientNetwork::startUpdates()
 					index = std::stof(parsedData[0]);
 				}
 				else {
-					recievePacket(packet.packet_type, packet.sender, buf);
+					recievePacket(packet.packet_type, packet.sender, packet.data);
 				}
 			}
 		}
@@ -183,7 +183,7 @@ void ClientNetwork::startUpdates()
 					sendData(INIT_CONNECTION, to_string(index), false);
 				}
 				else {
-					recievePacket(packet.packet_type, packet.sender, buf);
+					recievePacket(packet.packet_type, packet.sender, packet.data);
 				}
 			}
 		}
