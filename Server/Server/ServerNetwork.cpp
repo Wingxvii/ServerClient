@@ -111,28 +111,36 @@ void ServerNetwork::startUpdates()
 				cout << "Cleared User Cache" << endl;
 			}
 
-			if (command == "/test1") {
-				cout << "Testing...";
-			}
-			if (command == "/test2") {
+			if (command == "/testUDP" || command == "/test") {
 				Packet pack;
 				pack.packet_type = MESSAGE;
 
-				string test = "test";
+				string test = "sending UDP packet";
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
 				relay(pack, false);
 			}
-			if (command == "/test3") {
+			if (command == "/testTCP") {
 				Packet pack;
 				pack.packet_type = MESSAGE;
 
-				string test = "test";
+				string test = "sending TCP packet";
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
 				relay(pack, true);
+			}
+			if (command == "/help") {
+				cout << "/quit - quits application" << endl;
+				cout << "/open - starts a independant client" << endl;
+				cout << "/clear - clears user cache" << endl;
+				cout << "/testUDP - Pings a UDP packet" << endl;
+				cout << "/testTCP - Pings a TCP packet" << endl;
+
+			}
+			else {
+				cout << "Command unknown. Input /help for help.";
 			}
 
 		}
