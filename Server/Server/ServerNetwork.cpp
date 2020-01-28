@@ -92,7 +92,7 @@ void ServerNetwork::startUpdates()
 
 		while (listening) {
 			string command;
-			cin >> command;
+			std::getline(std::cin, command);
 			if (command == "/quit") {
 				listening = false;
 			}
@@ -318,8 +318,10 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	//relay the data
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
+		cout << "TCP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
 
-		cout << "TCP Message Recieved:" << parsedData[0] << endl;
+		relay(pack, true);
+
 		break;
 
 	case PacketType::WEAPON_DATA:
@@ -367,7 +369,9 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
 
-		cout << "UDP Message Recieved:" << parsedData[0] << endl;
+		cout << "UDP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
+		relay(pack);
+
 		break;
 	case PacketType::PLAYER_DATA:
 	case PacketType::DROID_POSITION:

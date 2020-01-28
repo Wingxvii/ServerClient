@@ -1,2 +1,5 @@
-﻿  Tokenizer.cpp
+﻿  main.cpp
+  ServerNetwork.cpp
+  Tokenizer.cpp
+  Generating Code...
   Server.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe

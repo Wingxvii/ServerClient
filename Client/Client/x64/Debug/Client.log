@@ -1,4 +1,7 @@
-﻿  ClientNetwork.cpp
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppClean.targets(76,5): warning : The process cannot access the file 'c:\users\turnt\onedrive\documents\c++\serverclient\client\client\x64\debug\vc142.pdb' because it is being used by another process.
+  main.cpp
+  ClientNetwork.cpp
 C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(179,21): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  Generating Code...
 C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\Client\ClientNetwork.cpp(234,20): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
   Client.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Client\x64\Debug\Client.exe

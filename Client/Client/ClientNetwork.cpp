@@ -170,7 +170,7 @@ void ClientNetwork::ProcessTCP(Packet pack)
 	parsedData = tokenize(',', pack.data);
 	//all needed data types
 	string message = "";
-	cout << "TCP MESSAGE RECIEVED";
+	//cout << "TCP MESSAGE RECIEVED";
 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -191,7 +191,7 @@ void ClientNetwork::ProcessTCP(Packet pack)
 		for (int counter = 0; counter < parsedData.size(); counter++) {
 			message = message + parsedData[counter];
 		}
-		cout << "Message Recieved from user " << pack.sender << " :" << message << endl;
+		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
 		break;
 	case PacketType::PLAYER_DATA:
 		break;
@@ -226,7 +226,7 @@ void ClientNetwork::ProcessUDP(Packet pack)
 
 	//all needed data types
 	string message = "";
-	cout << "UDP MESSAGE RECIEVED";
+	//cout << "UDP MESSAGE RECIEVED";
 
 
 	switch (pack.packet_type) {
@@ -238,7 +238,7 @@ void ClientNetwork::ProcessUDP(Packet pack)
 		for (int counter = 0; counter < parsedData.size(); counter++) {
 			message = message + parsedData[counter];
 		}
-		cout << "Message Recieved from user " << pack.sender << " :" << message << endl;
+		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
 		break;
 	case PacketType::PLAYER_DATA:
 		break;

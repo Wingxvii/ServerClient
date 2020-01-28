@@ -177,6 +177,9 @@ void ClientNetwork::startUpdates()
 					parsedData = tokenize(',', packet.data);
 
 					index = std::stof(parsedData[0]);
+
+					recievePacket(packet.packet_type, -1, packet.data);
+
 					//connect to udp
 					inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
 

@@ -1,5 +1,4 @@
 ﻿  ClientNetwork.cpp
 C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(156,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
 C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\CNET\ClientNetwork.cpp(179,23): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-     Creating library C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.lib and object C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.exp
   CNET.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\UnityPlugins\CNET\x64\Debug\CNET.dll

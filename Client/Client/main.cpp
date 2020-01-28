@@ -19,15 +19,37 @@ int main() {
 
 	while (true) {
 		string command;
-		cin >> command;
+		std::getline(std::cin, command);
 
 		if (command == "/quit") {
 			net.listening = false;
 		}
-		if (command == "/test") {
+		else if (command == "/test") {
 
 			net.sendData(MESSAGE, "hello", false);
 		}
+		else if (command.substr(0, 5) == "/send") {
+			if (command.size() >= 8) {
+				if (command.substr(0, 9) == "/send udp") {
+					string message = command.erase(0, 9);
+					net.sendData(PacketType::MESSAGE, message);
+
+				}
+				else if (command.substr(0, 9) == "/send tcp") {
+					string message = command.erase(0, 9);
+					net.sendData(PacketType::MESSAGE, message, true);
+				}
+				else {
+					string message = command.erase(0, 5);
+					net.sendData(PacketType::MESSAGE, message);
+				}
+			}
+			else {
+				string message = command.erase(0, 5);
+				net.sendData(PacketType::MESSAGE, message);
+			}
+		}
+
 	}
 
 
