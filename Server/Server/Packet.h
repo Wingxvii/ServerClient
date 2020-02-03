@@ -31,13 +31,13 @@ enum PacketType {
 	//entity built
 	BUILD_ENTITY = 6,
 	//entity killed
-	KILL_ENTITY = 8,
+	KILL_ENTITY = 7,
 	//game state
-	GAME_STATE = 9,
+	GAME_STATE = 8,
 	//player damaged
-	PLAYER_DAMAGE = 10,
+	PLAYER_DAMAGE = 9,
 	//data of all turrets
-	TURRET_DATA = 11,
+	TURRET_DATA = 10
 
 };
 

@@ -1,8 +1,8 @@
 ﻿  ClientNetwork.cpp
-     Creating library D:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.lib and object D:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.exp
+     Creating library C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.lib and object C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.exp
   Generating code
-  2 of 305 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  4 of 236 functions ( 1.7%) were compiled, the rest were copied from previous compilation.
+    3 functions were new in current compilation
+    34 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  Network_Plugin.vcxproj -> D:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.dll
+  Network_Plugin.vcxproj -> C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.dll

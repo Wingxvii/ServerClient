@@ -2,38 +2,47 @@
 
 
 //constructor wrapper
-CNET_H ClientNetwork* CreateClient() {
+NETWORK_H ClientNetwork* CreateClient() {
 	return new ClientNetwork();
 }
 //destructor wrapper
-CNET_H void DeleteClient(ClientNetwork* client) {
-	WSACleanup();
+NETWORK_H void DeleteClient(ClientNetwork* client) {
 	delete client;
 }
 //connection
-CNET_H void Connect(char* ip, ClientNetwork* client)
+NETWORK_H bool Connect(char* ip, ClientNetwork* client)
 {
-	client->connectToServer(std::string(ip));
+	return client->connectToServer(ip);
 }
 
-CNET_H void StartUpdating(ClientNetwork* client)
+NETWORK_H bool SendData(int type, char* message, bool useTCP, ClientNetwork* client)
+{
+	return client->sendData((PacketType)type, message, useTCP);
+}
+
+NETWORK_H void StartUpdating(ClientNetwork* client)
 {
 	client->startUpdates();
 }
 
-CNET_H void SendData(int type, char* message, bool useTCP, ClientNetwork* client)
-{
-	client->sendData((PacketType)type, message, useTCP);
-}
-
-CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
+NETWORK_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
 {
 	recievePacket = action;
 }
 
-CNET_H int GetPlayerNumber(ClientNetwork* client)
+NETWORK_H int GetPlayerNumber(ClientNetwork* client)
 {
 	return client->index;
+}
+
+NETWORK_H int GetError(ClientNetwork* client)
+{
+	return client->GetError();
+}
+
+NETWORK_H int GetErrorLoc(ClientNetwork* client)
+{
+	return client->GetErrorLoc();
 }
 
 
@@ -46,43 +55,29 @@ ClientNetwork::ClientNetwork()
 	//startup
 	int wsOk = WSAStartup(version, &data);
 	if (wsOk != 0) {
-		std::cout << "Failed to Start Winsock" << wsOk;
+		// std::cout << "Failed to Start Winsock" << wsOk;
+		error = WSAGetLastError();
+		errorLoc = 0;
 		return;
 	}
 
 	//2. setup server information
-	//memset(&hintsTCP, 0, sizeof(hintsTCP));
-	//hintsTCP.ai_family = AF_INET;
-	//hintsTCP.ai_socktype = SOCK_STREAM;
-	//hintsTCP.ai_protocol = IPPROTO_TCP;
-	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(54223);
-	tcp = socket(serverTCP.sin_family, SOCK_STREAM, IPPROTO_TCP);
-	//tcp = socket(ptrTCP->ai_family, ptrTCP->ai_socktype, ptrTCP->ai_protocol);
-	if (tcp == INVALID_SOCKET)
-	{
-		std::cout << "Can't create TCP socket, Err #" << WSAGetLastError() << std::endl;
-		WSACleanup();
-		return;
-	}
-
-
-	//memset(&hintsUDP, 0, sizeof(hintsUDP));
-	//hintsUDP.ai_family = AF_INET;
-	//hintsUDP.ai_socktype = SOCK_DGRAM;
-	//hintsUDP.ai_protocol = IPPROTO_UDP;
-	serverlength = sizeof(serverUDP);
-	serverUDP.sin_family = AF_INET;
-	serverUDP.sin_port = htons(54222);
-
-	udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
-	//udp = socket(ptrUDP->ai_family , ptrUDP->ai_socktype, ptrUDP->ai_protocol);
-	//if (udp == INVALID_SOCKET)
-	//{
-	//	std::cout << "Can't create UDP socket, Err #" << WSAGetLastError() << std::endl;
-	//	WSACleanup();
-	//	return;
-	//}
+	memset(&hintsTCP, 0, sizeof(hintsTCP));
+	hintsTCP.ai_family = AF_INET;
+	hintsTCP.ai_socktype = SOCK_STREAM;
+	hintsTCP.ai_protocol = IPPROTO_TCP;
+	//serverTCP.sin_family = AF_INET;
+	//serverTCP.sin_port = htons(54223);
+	//tcp = socket(serverTCP.sin_family, SOCK_STREAM, IPPROTO_TCP);
+	
+	memset(&hintsUDP, 0, sizeof(hintsUDP));
+	hintsUDP.ai_family = AF_INET;
+	hintsUDP.ai_socktype = SOCK_DGRAM;
+	hintsUDP.ai_protocol = IPPROTO_UDP;
+	//serverlength = sizeof(serverUDP);
+	//serverUDP.sin_family = AF_INET;
+	//serverUDP.sin_port = htons(54222);
+	//udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
 }
 
 ClientNetwork::~ClientNetwork()
@@ -93,47 +88,72 @@ ClientNetwork::~ClientNetwork()
 	WSACleanup();
 }
 
-int ClientNetwork::connectToServer()
-{
-	return connectToServer("127.0.0.1");
-}
 
-int ClientNetwork::connectToServer(std::string ip)
+bool ClientNetwork::connectToServer(std::string ip)
 {
-	ipActual = ip;
+	if (ip != "")
+	{
+		ipActual = ip;
+	}
 
 	// Converting string ip address to actually ip address
-	inet_pton(serverTCP.sin_family, ip.c_str(), &serverTCP.sin_addr);
+	//inet_pton(serverTCP.sin_family, ip.c_str(), &serverTCP.sin_addr);
 	//connecting to the tcp server
 	
-	//if (getaddrinfo(ip.c_str(), "5000", &hintsTCP, &ptrTCP))
-	//{
-	//	std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
-	//	WSACleanup();
-	//	return SOCKET_ERROR;
-	//}
-	//
-	//if (getaddrinfo(ip.c_str(), "5001", &hintsUDP, &ptrUDP))
-	//{
-	//	std::cout << "Getaddrinfo UDP Failed! " << WSAGetLastError() << std::endl;
-	//	WSACleanup();
-	//	return SOCKET_ERROR;
-	//}
-
-	if (connect(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP)) == SOCKET_ERROR)
+	if (getaddrinfo(ipActual.c_str(), "5000", &hintsTCP, &ptrTCP))
 	{
-		std::cout << "TCP Socket failed to connect to server, Err #" << WSAGetLastError() << std::endl;
-		closesocket(tcp);
-		//freeaddrinfo(ptrTCP);
+		//std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
+		error = WSAGetLastError();
+		errorLoc = 1;
 		WSACleanup();
-		return SOCKET_ERROR;
+		return false;
+	}
+
+	tcp = socket(ptrTCP->ai_family, ptrTCP->ai_socktype, ptrTCP->ai_protocol);
+	if (tcp == INVALID_SOCKET)
+	{
+		// std::cout << "Can't create TCP socket, Err #" << WSAGetLastError() << std::endl;
+		error = WSAGetLastError();
+		errorLoc = 2;
+		WSACleanup();
+		return false;
+	}
+
+	
+	if (getaddrinfo(ipActual.c_str(), "5001", &hintsUDP, &ptrUDP))
+	{
+		error = WSAGetLastError();
+		errorLoc = 3;
+		WSACleanup();
+		return false;
+	}
+
+	udp = socket(ptrUDP->ai_family, ptrUDP->ai_socktype, ptrUDP->ai_protocol);
+	if (udp == INVALID_SOCKET)
+	{
+		//std::cout << "Can't create UDP socket, Err #" << WSAGetLastError() << std::endl;
+		error = WSAGetLastError();
+		errorLoc = 4;
+		WSACleanup();
+		return false;
+	}
+
+	if (connect(tcp, ptrTCP->ai_addr, (int)ptrTCP->ai_addrlen) == SOCKET_ERROR)
+	{
+		//std::cout << "TCP Socket failed to connect to server, Err #" << WSAGetLastError() << std::endl;
+		error = WSAGetLastError();
+		errorLoc = 5;
+		closesocket(tcp);
+		freeaddrinfo(ptrTCP);
+		WSACleanup();
+		return false;
 	}
 
 	//ping and determine client index
-	return 0;
+	return true;
 }
 
-int ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
+bool ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
 {
 	//create packet
 	Packet packet;
@@ -150,20 +170,24 @@ int ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
 
 	//udp send
 	if (!useTCP) {
-		if (sendto(udp, packet_data, packet_size, 0, (sockaddr*)&serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
-			std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			return SOCKET_ERROR;
+		if (sendto(udp, packet_data, packet_size, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
+			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+			error = WSAGetLastError();
+			errorLoc = 6;
+			return false;
 		}
 	}
 	//tcp send
 	else {
 		if (send(tcp, packet_data, packet_size, 0) == SOCKET_ERROR)
 		{
-			std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			return SOCKET_ERROR;
+			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+			error = WSAGetLastError();
+			errorLoc = 7;
+			return false;
 		}
 	}
-	return 0;
+	return true;
 }
 
 void ClientNetwork::startUpdates()
@@ -210,7 +234,7 @@ void ClientNetwork::startUpdates()
 					recievePacket(packet.packet_type, -1, packet.data);
 
 					//connect to udp
-					inet_pton(serverUDP.sin_family, ipActual.c_str(), &serverUDP.sin_addr);
+					//inet_pton(serverUDP.sin_family, ipActual.c_str(), &serverUDP.sin_addr);
 
 					sendData(INIT_CONNECTION, std::to_string(index), false);
 				}
@@ -239,5 +263,15 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 	temp.push_back(text.substr(lastTokenLocation, text.size()));
 
 	return temp;
+}
+
+int ClientNetwork::GetError()
+{
+	return error;
+}
+
+int ClientNetwork::GetErrorLoc()
+{
+	return errorLoc;
 }
 

@@ -1,11 +1,11 @@
 #pragma once
 
 #ifdef PLUGIN_EXPORTS
-#define CNET_H __declspec(dllexport)
+#define NETWORK_H __declspec(dllexport)
 #elif PLUGIN_IMPORTS
-#define CNET_H __declspec(dllimport)
+#define NETWORK_H __declspec(dllimport)
 #else
-#define CNET_H
+#define NETWORK_H
 #endif
 
 #include <ws2tcpip.h>
@@ -35,29 +35,32 @@ public:
 	SOCKET udp;
 	SOCKET tcp;
 
-	//struct addrinfo* ptrUDP = NULL, hintsUDP;
-	//struct addrinfo* ptrTCP = NULL, hintsTCP;
-	sockaddr_in serverUDP;
-	sockaddr_in serverTCP;
-	int serverlength = 0;
+	struct addrinfo* ptrUDP = NULL, hintsUDP;
+	struct addrinfo* ptrTCP = NULL, hintsTCP;
+	//sockaddr_in serverUDP;
+	//sockaddr_in serverTCP;
+	//int serverlength = 0;
 
 	bool listening = true;
 
 	//client details
-	std::string ipActual = "";
+	std::string ipActual = "127.0.0.1";
 	int index = 0;
-
+	int error = 0;
+	int errorLoc = 0;
 public:
-	int connectToServer();
-	int connectToServer(std::string ip);
+	bool connectToServer(std::string ip);
 
 	// int sendMessage(std::string message, bool useTCP = false);
 
 	void startUpdates();
-	int sendData(int packetType, std::string message, bool useTCP = false);	//udp send data
+	bool sendData(int packetType, std::string message, bool useTCP = false);	//udp send data
 
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
+
+	int GetError();
+	int GetErrorLoc();
 
 };
 
@@ -65,16 +68,16 @@ extern "C" {
 	//message action
 	void (*recievePacket)(int type, int sender, char* data);
 
-	CNET_H ClientNetwork* CreateClient();
-	CNET_H void DeleteClient(ClientNetwork* client);
-	CNET_H void Connect(char* ip, ClientNetwork* client);
-	CNET_H void StartUpdating(ClientNetwork* client);
-	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
+	NETWORK_H ClientNetwork* CreateClient();
+	NETWORK_H void DeleteClient(ClientNetwork* client);
+	NETWORK_H bool Connect(char* ip, ClientNetwork* client);
+	NETWORK_H void StartUpdating(ClientNetwork* client);
+	NETWORK_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 
-	CNET_H void SendData(int type, char* message, bool useTCP, ClientNetwork* client);
+	NETWORK_H bool SendData(int type, char* message, bool useTCP, ClientNetwork* client);
 
+	NETWORK_H int GetPlayerNumber(ClientNetwork* client);
 
-	CNET_H int GetPlayerNumber(ClientNetwork* client);
-
-
+	NETWORK_H int GetError(ClientNetwork* client);
+	NETWORK_H int GetErrorLoc(ClientNetwork* client);
 }

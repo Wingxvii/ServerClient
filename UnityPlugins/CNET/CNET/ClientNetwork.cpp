@@ -12,8 +12,7 @@ CNET_H void DeleteClient(ClientNetwork* client) {
 //connection
 CNET_H void Connect(char* ip, ClientNetwork* client)
 {
-	string _ip = string(ip);
-	client->connectToServer(_ip);
+	client->connectToServer(ip);
 }
 
 CNET_H void StartUpdating(ClientNetwork* client)
@@ -52,7 +51,7 @@ ClientNetwork::ClientNetwork()
 
 	//2. setup server information
 	serverUDP.sin_family = AF_INET;
-	serverUDP.sin_port = htons(54222);
+	serverUDP.sin_port = htons(5001);
 	serverlength = sizeof(serverUDP);
 
 	udp = socket(AF_INET, SOCK_DGRAM, 0);
@@ -65,7 +64,7 @@ ClientNetwork::ClientNetwork()
 		return;
 	}
 	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(54223);
+	serverTCP.sin_port = htons(5000);
 }
 
 ClientNetwork::~ClientNetwork()
