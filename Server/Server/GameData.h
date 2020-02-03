@@ -1,5 +1,4 @@
 #pragma once
-using namespace std;
 
 struct Vector3
 {

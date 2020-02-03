@@ -8,34 +8,34 @@ ServerNetwork::ServerNetwork()
 	//startup
 	int wsOk = WSAStartup(version, &data);
 	if (wsOk != 0) {
-		cout << "cant start winsock" << wsOk;
+		std::cout << "cant start winsock" << wsOk;
 		return;
 	}
 
 	//UDP socket connection
-	udp = socket(AF_INET, SOCK_DGRAM, 0);
 	//socket setup
 	serverUDP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverUDP.sin_family = AF_INET;
 	serverUDP.sin_port = htons(54222);
 	clientLength = sizeof(serverUDP);
-	if (bind(udp, (sockaddr*)&serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
-		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
+	udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
+	if (bind(udp, (const sockaddr*)&serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
+		std::cout << "Can't bind socket! " << WSAGetLastError() << std::endl;					//bind client info to client
 	}
 
 	//TCP socket connection
-	tcp = socket(AF_INET, SOCK_STREAM, 0);
-	if (tcp == INVALID_SOCKET)
-	{
-		cerr << "Can't create a socket!" << endl;
-	}
-
 	//socket setup
 	serverTCP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverTCP.sin_family = AF_INET;
 	serverTCP.sin_port = htons(54223);
+	tcp = socket(serverTCP.sin_family, SOCK_STREAM, IPPROTO_TCP);
+	if (tcp == INVALID_SOCKET)
+	{
+		std::cout << "Can't create a socket!" << std::endl;
+	}
+
 	if (bind(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP)) == SOCKET_ERROR) {
-		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
+		std::cout << "Can't bind socket! " << WSAGetLastError() << std::endl;					//bind client info to client
 	}
 	listen(tcp, SOMAXCONN);
 
@@ -46,8 +46,7 @@ ServerNetwork::ServerNetwork()
 
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
-	packetsIn = vector<Packet>();
-
+	packetsIn = std::vector<Packet>();
 
 }
 
@@ -75,23 +74,23 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 
 		inet_ntop(AF_INET, &(ConnectedUsers[sender].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
 		ConnectedUsers[sender].clientIP = str;
-		cout << "Client " << ConnectedUsers[sender].index << " has connected." << endl;
+		std::cout << "Client " << ConnectedUsers[sender].index << " has connected." << std::endl;
 
 
 	}
 	else {
-		cout << "Connection Error";
+		std::cout << "Connection Error";
 	}
 }
 
 void ServerNetwork::startUpdates()
 {
-	
-	cout << "Server Running..." << endl;
-	thread CommandLine = thread([&]() {
+
+	std::cout << "Server Running..." << std::endl;
+	std::thread CommandLine = std::thread([&]() {
 
 		while (listening) {
-			string command;
+			std::string command;
 			std::getline(std::cin, command);
 			if (command == "/quit") {
 				listening = false;
@@ -102,20 +101,20 @@ void ServerNetwork::startUpdates()
 			}
 
 			if (command == "/clear") {
-			
+
 				ConnectedUsers.clear();
 				clientCount = 0;
 				FD_ZERO(&master);
 				FD_SET(tcp, &master);
 				FD_SET(udp, &master);
-				cout << "Cleared User Cache" << endl;
+				std::cout << "Cleared User Cache" << std::endl;
 			}
 
 			if (command == "/testUDP" || command == "/test") {
 				Packet pack;
 				pack.packet_type = MESSAGE;
 
-				string test = "sending UDP packet";
+				std::string test = "sending UDP packet";
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
@@ -125,29 +124,29 @@ void ServerNetwork::startUpdates()
 				Packet pack;
 				pack.packet_type = MESSAGE;
 
-				string test = "sending TCP packet";
+				std::string test = "sending TCP packet";
 
 				strcpy_s(pack.data, test.c_str() + '\0');
 				pack.sender = -1;
 				relay(pack, true);
 			}
 			if (command == "/help") {
-				cout << "/quit - quits application" << endl;
-				cout << "/open - starts a independant client" << endl;
-				cout << "/clear - clears user cache" << endl;
-				cout << "/testUDP - Pings a UDP packet" << endl;
-				cout << "/testTCP - Pings a TCP packet" << endl;
+				std::cout << "/quit - quits application" << std::endl;
+				std::cout << "/open - starts a independant client" << std::endl;
+				std::cout << "/clear - clears user cache" << std::endl;
+				std::cout << "/testUDP - Pings a UDP packet" << std::endl;
+				std::cout << "/testTCP - Pings a TCP packet" << std::endl;
 
 			}
 			else {
-				cout << "Command unknown. Input /help for help.";
+				std::cout << "Command unknown. Input /help for help.";
 			}
 
 		}
 
 	});
 	CommandLine.detach();
-	
+
 
 	while (listening) {
 
@@ -157,14 +156,14 @@ void ServerNetwork::startUpdates()
 		//handle all active sockets
 		for (int i = 0; i < socketCount; i++)
 		{
-			cout << "Packet Recieved:";
+			// std::cout << "Packet Recieved:";
 
 			SOCKET sock = copy.fd_array[i];
 
 			//TCP New Connection Listener
 			if (sock == tcp)
 			{
-				cout << "TCP Connection" << endl;
+				std::cout << "TCP Connection" << std::endl;
 
 				// Accept a new connection
 				SOCKET client = accept(tcp, nullptr, nullptr);
@@ -187,7 +186,7 @@ void ServerNetwork::startUpdates()
 				Packet initPack;
 				initPack.sender = -1;
 				initPack.packet_type = INIT_CONNECTION;
-				strcpy_s(initPack.data, (to_string(newProfile.index) + ",").c_str() + '\0');
+				strcpy_s(initPack.data, (std::to_string(newProfile.index) + ",").c_str() + '\0');
 				sendTo(initPack, client);
 
 			}
@@ -198,7 +197,7 @@ void ServerNetwork::startUpdates()
 				//recieve packet from socket
 				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &clientLength);
 				if (length == SOCKET_ERROR) {
-					cout << "UDP Recieve Error: " << WSAGetLastError() << endl;
+					std::cout << "UDP Recieve Error: " << WSAGetLastError() << std::endl;
 				}
 				else {
 					//deseralize socket data into packet
@@ -207,12 +206,12 @@ void ServerNetwork::startUpdates()
 
 					//process connection packet
 					if (packet.packet_type == PacketType::INIT_CONNECTION) {
-						cout << "UDP Connection" << endl;
+						std::cout << "UDP Connection" << std::endl;
 						std::vector<std::string> parsedData;
 
 						//tokenize
 						parsedData = Tokenizer::tokenize(',', packet.data);
-						parsedData.insert(parsedData.begin(), to_string(packet.sender));
+						parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
 
 						acceptNewClient(parsedData, serverUDP, clientLength);
 						break;
@@ -231,7 +230,7 @@ void ServerNetwork::startUpdates()
 				//handles disconnection packets
 				if (length <= 0)
 				{
-					cout << "Disconnection" << endl;
+					std::cout << "Disconnection" << std::endl;
 
 					//handle disconnected user updates
 					for (UserProfile profile : ConnectedUsers) {
@@ -245,7 +244,7 @@ void ServerNetwork::startUpdates()
 					FD_CLR(sock, &master);
 				}
 				else if (length == SOCKET_ERROR) {
-					cout << "Recieve Error: " << WSAGetLastError() << endl;
+					std::cout << "Recieve Error: " << WSAGetLastError() << std::endl;
 				}
 				else {
 					//process packet data
@@ -269,7 +268,7 @@ void ServerNetwork::sendToAll(Packet pack)
 
 		int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&client.udpAddress, client.clientLength);
 		if (sendOK == SOCKET_ERROR) {
-			cout << "Send Error: " << WSAGetLastError() << endl;
+			std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 		}
 	}
 }
@@ -284,7 +283,7 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 
 	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
-		cout << "Send Error: " << WSAGetLastError() << endl;
+		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 	}
 
 }
@@ -300,7 +299,7 @@ void ServerNetwork::sendTo(Packet pack, SOCKET client)
 	pack.serialize(packet_data);
 	int sendOK = send(client, packet_data, packet_size, 0);
 	if (sendOK == SOCKET_ERROR) {
-		cout << "Send Error: " << WSAGetLastError() << endl;
+		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 	}
 }
 
@@ -310,15 +309,16 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	std::vector<std::string> parsedData;
 
 	//packet processing 
-	switch (pack.packet_type) {
+	switch (pack.packet_type)
+	{
 	case PacketType::INIT_CONNECTION:
-		cout << "Data Pipeline Error: INIT Connection not handled correctly";
+		std::cout << "Data Pipeline Error: INIT Connection not handled correctly";
 		break;
 
-	//relay the data
+		//relay the data
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
-		cout << "TCP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
+		std::cout << "TCP Message Recieved from user (" + std::to_string(pack.sender) + "):" << parsedData[0] << std::endl;
 
 		relay(pack, true);
 
@@ -328,31 +328,32 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	case PacketType::BUILD_ENTITY:
 	case PacketType::KILL_ENTITY:
 	case PacketType::GAME_STATE:
+		std::cout << "TCP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
 		relay(pack, true);
 		break;
-	
-	//send the data to RTS player
+
+		//send the data to RTS player
 	case PacketType::ENVIRONMENT_DAMAGE:
 		sendTo(pack, ConnectedUsers[0].tcpSocket);
 		break;
 
-	//send the data to sepific player
+		//send the data to sepific player
 	case PacketType::PLAYER_DAMAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
 		sendTo(pack, stoi(parsedData[0]));
 		break;
 
 	case PacketType::PLAYER_DATA:
-		cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
+		std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
 		break;
 	case PacketType::DROID_POSITION:
-		cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
+		std::cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
 		break;
 	case PacketType::TURRET_DATA:
-		cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
+		std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
 		break;
 	default:
-		cout << "Error: Unhandled Packet Type";
+		std::cout << "Error: TCP Unhandled Packet Type: " << pack.packet_type << std::endl;
 		break;
 	}
 
@@ -363,13 +364,13 @@ void ServerNetwork::ProcessUDP(Packet pack)
 {
 	std::vector<std::string> parsedData;
 
-	switch (pack.packet_type) {
-
-	//relay the data to all clients
+	switch (pack.packet_type)
+	{
+		//relay the data to all clients
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
 
-		cout << "UDP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
+		std::cout << "UDP Message Recieved from user (" + std::to_string(pack.sender) + "):" << parsedData[0] << std::endl;
 		relay(pack);
 
 		break;
@@ -381,28 +382,28 @@ void ServerNetwork::ProcessUDP(Packet pack)
 
 
 	case PacketType::INIT_CONNECTION:
-		cout << "Error: Incomming connection packet through invalid TCP channels";
+		std::cout << "Error: Incomming connection packet through invalid TCP channels";
 		break;
 	case PacketType::WEAPON_DATA:
-		cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
+		std::cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
 		break;
 	case PacketType::ENVIRONMENT_DAMAGE:
-		cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
+		std::cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
 		break;
 	case PacketType::BUILD_ENTITY:
-		cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
+		std::cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
 		break;
 	case PacketType::KILL_ENTITY:
-		cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
+		std::cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
 		break;
 	case PacketType::GAME_STATE:
-		cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
+		std::cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
 		break;
 	case PacketType::PLAYER_DAMAGE:
-		cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
+		std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
 		break;
 	default:
-		cout << "Error: Unhandled Packet Type";
+		std::cout << "Error: UDP Unhandled Packet Type:" << pack.packet_type << std::endl;
 		break;
 	}
 }
@@ -423,13 +424,13 @@ void ServerNetwork::relay(Packet pack, bool useTCP)
 
 			int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[counter].udpAddress, ConnectedUsers[counter].clientLength);
 			if (sendOK == SOCKET_ERROR) {
-				cout << "Send Error: " << WSAGetLastError() << endl;
+				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 			}
 		}
 		else {
 			int sendOK = send(ConnectedUsers[counter].tcpSocket, packet_data, packet_size, 0);
 			if (sendOK == SOCKET_ERROR) {
-				cout << "Send Error: " << WSAGetLastError() << endl;
+				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 			}
 		}
 	}
@@ -441,7 +442,7 @@ void ServerNetwork::printOut(Packet pack, int clientID)
 	parsedData = Tokenizer::tokenize(',', pack.data);
 
 	for (int i = 0; i < parsedData.size(); i++) {
-		cout << parsedData[i] << endl;
+		std::cout << parsedData[i] << std::endl;
 	}
 }
 

@@ -10,14 +10,12 @@
 #pragma comment (lib, "ws2_32.lib")
 #define DEFAULT_PORT "6883" 
 
-using namespace std;
-
 struct UserProfile {
 	int index;
-	string Username;
+	std::string Username;
 	sockaddr_in udpAddress;
 	SOCKET tcpSocket;
-	string clientIP;
+	std::string clientIP;
 	int clientLength;
 
 	//checks for disconnection
@@ -43,7 +41,7 @@ public:
 
 	bool listening = true;
 
-	vector<Packet> packetsIn;
+	std::vector<Packet> packetsIn;
 
 	int clientCount = 0;
 

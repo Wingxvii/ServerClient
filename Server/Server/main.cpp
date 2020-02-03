@@ -3,7 +3,6 @@
 #include <vector> 
 #include "ServerNetwork.h"
 
-using namespace std;
 
 bool running = true;
 
