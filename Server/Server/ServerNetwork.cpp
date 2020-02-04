@@ -296,6 +296,7 @@ void ServerNetwork::startUpdates()
 				char* buf = new char[MAX_PACKET_SIZE];
 
 				int length = recv(sock, buf, MAX_PACKET_SIZE, 0);
+				std::cout << length << std::endl;
 				//handles disconnection packets
 				if (length <= 0)
 				{
@@ -321,6 +322,7 @@ void ServerNetwork::startUpdates()
 					packet.deserialize(buf);
 					ProcessTCP(packet);
 
+					
 				}
 
 				delete[] buf;
@@ -411,7 +413,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		//send the data to sepific player
 	case PacketType::PLAYER_DAMAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
-		sendTo(pack, stoi(parsedData[0]));
+		sendTo(pack, ConnectedUsers[stoi(parsedData[0])].tcpSocket);
 		break;
 
 	case PacketType::PLAYER_DATA:
