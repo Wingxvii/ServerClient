@@ -27,7 +27,7 @@ enum PacketType {
 	//RTS Managed Data
 
 	//data of all droids (up to 100)
-	DROID_POSITION = 5,
+	DROID_POSITION = 5, // Entity Data
 	//entity built
 	BUILD_ENTITY = 6,
 	//entity killed
