@@ -1,6 +1,5 @@
 #include "ClientNetwork.h"
 
-
 //constructor wrapper
 NETWORK_H ClientNetwork* CreateClient() {
 	return new ClientNetwork();
@@ -45,6 +44,21 @@ NETWORK_H int GetErrorLoc(ClientNetwork* client)
 	return client->GetErrorLoc();
 }
 
+NETWORK_H void UpdateFile(ClientNetwork* client)
+{
+	client->UpdateFile();
+}
+
+NETWORK_H void ClearFile(ClientNetwork* client)
+{
+	client->ClearFile();
+}
+
+NETWORK_H void Reset(ClientNetwork* client)
+{
+	client->Reset();
+}
+
 
 ClientNetwork::ClientNetwork()
 {
@@ -78,6 +92,8 @@ ClientNetwork::ClientNetwork()
 	//serverUDP.sin_family = AF_INET;
 	//serverUDP.sin_port = htons(54222);
 	//udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
+
+	ClearFile();
 }
 
 ClientNetwork::~ClientNetwork()
@@ -105,6 +121,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 		//std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 1;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -115,6 +132,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 		// std::cout << "Can't create TCP socket, Err #" << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 2;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -124,6 +142,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 	{
 		error = WSAGetLastError();
 		errorLoc = 3;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -134,6 +153,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 		//std::cout << "Can't create UDP socket, Err #" << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 4;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -143,6 +163,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 		//std::cout << "TCP Socket failed to connect to server, Err #" << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 5;
+		UpdateFile();
 		closesocket(tcp);
 		freeaddrinfo(ptrTCP);
 		WSACleanup();
@@ -174,6 +195,7 @@ bool ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
 			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 			error = WSAGetLastError();
 			errorLoc = 6;
+			UpdateFile();
 			return false;
 		}
 	}
@@ -184,6 +206,7 @@ bool ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
 			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 			error = WSAGetLastError();
 			errorLoc = 7;
+			UpdateFile();
 			return false;
 		}
 	}
@@ -255,7 +278,7 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 
 	for (int i = 0; i < text.size(); i++) {
 		if (text[i] == token) {
-			temp.push_back(text.substr(lastTokenLocation, i - lastTokenLocation));
+			temp.push_back(text.substr(lastTokenLocation, (size_t)(i - lastTokenLocation)));
 			lastTokenLocation = i + 1;
 
 		}
@@ -275,3 +298,25 @@ int ClientNetwork::GetErrorLoc()
 	return errorLoc;
 }
 
+void ClientNetwork::UpdateFile()
+{
+	std::ofstream saveFile;
+	saveFile.open(filePath);
+	saveFile << "Error Loc: " << ClientNetwork::GetErrorLoc()
+		<< "\t Error: " << ClientNetwork::GetError() << std::endl;
+
+	saveFile.close();
+}
+
+void ClientNetwork::ClearFile()
+{
+	std::ofstream saveFile;
+	saveFile.open(filePath);
+	saveFile.clear();
+	saveFile.close();
+}
+
+void ClientNetwork::Reset()
+{
+
+}

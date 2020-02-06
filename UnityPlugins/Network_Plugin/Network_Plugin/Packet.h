@@ -11,36 +11,33 @@
 
 enum PacketType {
 	//initialization connection
-	INIT_CONNECTION = 0,
+	INIT = 0,
 	//single string
 	MESSAGE = 1,
 
 	//FPS Managed Data
-
 	//data of players
 	PLAYER_DATA = 2,
 	//player weapon switch
-	WEAPON_DATA = 3,
+	WEAPON_STATE = 3,
 	//environment damage
-	ENVIRONMENT_DAMAGE = 4,
+	DAMAGE_DEALT = 4,
 
 	//RTS Managed Data
 
 	//data of all droids (up to 100)
-	DROID_POSITION = 5,
+	ENTITY_DATA = 5, // Entity Data
 	//entity built
-	BUILD_ENTITY = 6,
+	BUILD = 6,
 	//entity killed
-	KILL_ENTITY = 7,
+	KILL = 7,
 	//game state
 	GAME_STATE = 8,
 	//player damaged
 	PLAYER_DAMAGE = 9,
 	//data of all turrets
-	TURRET_DATA = 10,
-
+	TURRET_DATA = 10
 };
-
 
 struct Packet {
 
@@ -58,3 +55,47 @@ struct Packet {
 	}
 };
 
+NETWORK_H struct packet_init {
+	int playerID;
+};
+
+NETWORK_H struct packet_msg {
+	char* message;
+};
+
+NETWORK_H struct packet_entity {
+	float posX;
+	float posY;
+	float posZ;
+	float rotX;
+	float rotY;
+	float rotZ;
+	int state;
+};
+
+NETWORK_H struct packet_weapon {
+	int weapon;
+};
+
+NETWORK_H struct packet_damage {
+	int playerID;
+	bool dir;
+	int entity;
+	float damage;
+};
+
+NETWORK_H struct packet_build {
+	int id;
+	int type;
+	float posX;
+	float posY;
+	float posZ;
+};
+
+NETWORK_H struct packet_kill {
+	int id;
+};
+
+NETWORK_H struct packet_state {
+	int state;
+};

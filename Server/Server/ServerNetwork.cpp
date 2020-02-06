@@ -252,7 +252,7 @@ void ServerNetwork::startUpdates()
 				//send outgoing connection packet back to client
 				Packet initPack;
 				initPack.sender = -1;
-				initPack.packet_type = INIT_CONNECTION;
+				initPack.packet_type = INIT;
 				strcpy_s(initPack.data, (std::to_string(newProfile.index) + ",").c_str() + '\0');
 				sendTo(initPack, client);
 
@@ -272,7 +272,7 @@ void ServerNetwork::startUpdates()
 					packet.deserialize(buf);
 
 					//process connection packet
-					if (packet.packet_type == PacketType::INIT_CONNECTION) {
+					if (packet.packet_type == PacketType::INIT) {
 						std::cout << "UDP Connection" << std::endl;
 						std::vector<std::string> parsedData;
 
@@ -384,7 +384,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	//packet processing 
 	switch (pack.packet_type)
 	{
-	case PacketType::INIT_CONNECTION:
+	case PacketType::INIT:
 		std::cout << "Data Pipeline Error: INIT Connection not handled correctly";
 		break;
 
@@ -397,16 +397,16 @@ void ServerNetwork::ProcessTCP(Packet pack)
 
 		break;
 
-	case PacketType::WEAPON_DATA:
-	case PacketType::BUILD_ENTITY:
-	case PacketType::KILL_ENTITY:
+	case PacketType::WEAPON_STATE:
+	case PacketType::BUILD:
+	case PacketType::KILL:
 	case PacketType::GAME_STATE:
 		std::cout << "TCP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
 		relay(pack, true);
 		break;
 
 		//send the data to RTS player
-	case PacketType::ENVIRONMENT_DAMAGE:
+	case PacketType::DAMAGE_DEALT:
 		sendTo(pack, ConnectedUsers[0].tcpSocket);
 		break;
 
@@ -419,8 +419,8 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	case PacketType::PLAYER_DATA:
 		std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
 		break;
-	case PacketType::DROID_POSITION:
-		std::cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
+	case PacketType::ENTITY_DATA:
+		std::cout << "Data Protocol Use Invalid: ENTITY_DATA:TCP";
 		break;
 	case PacketType::TURRET_DATA:
 		std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
@@ -447,7 +447,7 @@ void ServerNetwork::ProcessUDP(Packet pack)
 		relay(pack);
 
 		break;
-	case PacketType::DROID_POSITION:
+	case PacketType::ENTITY_DATA:
 	case PacketType::TURRET_DATA:
 		std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
 	case PacketType::PLAYER_DATA:
@@ -455,19 +455,19 @@ void ServerNetwork::ProcessUDP(Packet pack)
 		break;
 
 
-	case PacketType::INIT_CONNECTION:
+	case PacketType::INIT:
 		std::cout << "Error: Incomming connection packet through invalid TCP channels";
 		break;
-	case PacketType::WEAPON_DATA:
+	case PacketType::WEAPON_STATE:
 		std::cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
 		break;
-	case PacketType::ENVIRONMENT_DAMAGE:
-		std::cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
+	case PacketType::DAMAGE_DEALT:
+		std::cout << "Data Protocol Use Invalid: DAMAGE_DEALT:UDP";
 		break;
-	case PacketType::BUILD_ENTITY:
+	case PacketType::BUILD:
 		std::cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
 		break;
-	case PacketType::KILL_ENTITY:
+	case PacketType::KILL:
 		std::cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
 		break;
 	case PacketType::GAME_STATE:

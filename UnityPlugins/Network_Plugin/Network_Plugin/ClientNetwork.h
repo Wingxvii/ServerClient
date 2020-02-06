@@ -13,6 +13,7 @@
 #include <iostream>
 #include <thread>
 #include <queue>
+#include <fstream>
 #include "Packet.h"
 
 #pragma comment (lib, "ws2_32.lib")
@@ -29,6 +30,7 @@ struct Vec3 {
 class ClientNetwork
 {
 public:
+
 	ClientNetwork();
 	~ClientNetwork();
 
@@ -44,11 +46,13 @@ public:
 	bool listening = true;
 
 	//client details
+	std::string filePath = "ErrorLog.txt";
 	std::string ipActual = "127.0.0.1";
 	int index = 0;
 	int error = 0;
 	int errorLoc = 0;
 public:
+
 	bool connectToServer(std::string ip);
 
 	// int sendMessage(std::string message, bool useTCP = false);
@@ -61,6 +65,12 @@ public:
 
 	int GetError();
 	int GetErrorLoc();
+
+	void UpdateFile();
+
+	void ClearFile();
+
+	void Reset();
 
 };
 
@@ -80,4 +90,7 @@ extern "C" {
 
 	NETWORK_H int GetError(ClientNetwork* client);
 	NETWORK_H int GetErrorLoc(ClientNetwork* client);
+	NETWORK_H void UpdateFile(ClientNetwork* client);
+	NETWORK_H void ClearFile(ClientNetwork* client);
+	NETWORK_H void Reset(ClientNetwork* client);
 }
