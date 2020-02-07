@@ -1,5 +1,5 @@
-﻿  main.cpp
-  ServerNetwork.cpp
-  Tokenizer.cpp
+﻿  ServerNetwork.cpp
+  main.cpp
   Generating Code...
+  LINK : C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe not found or not built by the last incremental link; performing full link
   Server.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe
