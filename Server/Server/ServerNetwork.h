@@ -33,7 +33,7 @@ public:
 	SOCKET udp;
 	//struct addrinfo* ptrUDP = NULL, hintsUDP;
 	sockaddr_in serverUDP;
-	int clientLength;
+	//int clientLength;
 
 	SOCKET tcp;
 	//struct addrinfo* ptrTCP = NULL, hintsTCP;
@@ -56,7 +56,7 @@ public:
 	void initEntities();
 
 	//accept and save new socket
-	void acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length);
+	void acceptNewClient(int sender, sockaddr_in address, int length);
 
 	//begin listening to input signals
 	void startUpdates();

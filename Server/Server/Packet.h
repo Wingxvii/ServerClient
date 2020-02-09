@@ -10,38 +10,29 @@
 #pragma comment (lib, "ws2_32.lib")
 
 enum PacketType {
-	//initialization connection
+	// initialization connection
 	INIT = 0,
-	//single string
-	MESSAGE = 1,
+	// Join the Game
+	JOIN,
+	// single string
+	MESSAGE,
+	// game state
+	STATE,
 
-	//FPS Managed Data
+	// Entity Data
+	ENTITY,
+	// Damage dealt (int ID, bool Dir, int source, float damage)
+	DAMAGE,
 
-	//data of players
-	PLAYER_DATA = 2, //not needed
-	//player weapon switch
-	WEAPON_STATE = 3,
-	//environment damage
-	DAMAGE_DEALT = 4,
-	
+	// FPS weapon switch
+	WEAPON,
+
 	//RTS Managed Data
-
-	//data of all droids (up to 100)
-	ENTITY_DATA = 5, // Entity Data
-	//entity built
-	BUILD = 6,
-	//entity killed
-	KILL = 7,
-	//game state
-	GAME_STATE = 8,
-	//player damaged
-	PLAYER_DAMAGE = 9,
-	
-	//data of all turrets
-	TURRET_DATA = 10
-
+	// entity built
+	BUILD,
+	// entity killed
+	KILL
 };
-
 
 struct Packet {
 
@@ -59,3 +50,51 @@ struct Packet {
 	}
 };
 
+struct packet_init {
+	bool init;
+};
+
+struct packet_join {
+	int playerID;
+};
+
+struct packet_msg {
+	char* message;
+};
+
+struct packet_entity {
+	float posX;
+	float posY;
+	float posZ;
+	float rotX;
+	float rotY;
+	float rotZ;
+	int state;
+};
+
+struct packet_weapon {
+	int weapon;
+};
+
+struct packet_damage {
+	int playerID;
+	bool dir; // 0 = Damage to RTS, 1 = Damage to FPS
+	int entity;
+	float damage;
+};
+
+struct packet_build {
+	int id;
+	int type;
+	float posX;
+	float posY;
+	float posZ;
+};
+
+struct packet_kill {
+	int id;
+};
+
+struct packet_state {
+	int state;
+};

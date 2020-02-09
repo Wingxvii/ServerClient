@@ -1,1 +1,18 @@
-﻿
+﻿  ClientNetwork.cpp
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(85,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_init' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(89,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_join' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(93,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_msg' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(103,2): warning C4091: '__declspec(dllexport)': ignored on left of 'entity' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(107,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_entity' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(111,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_weapon' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(118,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_damage' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(126,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_build' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(130,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_kill' when no variable is declared
+C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(134,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_state' when no variable is declared
+     Creating library C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.lib and object C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.exp
+  Generating code
+  0 of 295 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Network_Plugin.vcxproj -> C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.dll

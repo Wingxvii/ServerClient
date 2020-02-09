@@ -18,7 +18,7 @@ ServerNetwork::ServerNetwork()
 	serverUDP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverUDP.sin_family = AF_INET;
 	serverUDP.sin_port = htons(5001);
-	clientLength = sizeof(serverUDP);
+	//clientLength = sizeof(serverUDP);
 	udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (udp == INVALID_SOCKET)
 	{
@@ -129,14 +129,14 @@ ServerNetwork::~ServerNetwork()
 
 }
 
-void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length)
+void ServerNetwork::acceptNewClient(int sender, sockaddr_in address, int length)
 {
 	//processing must be done here
-	int sender = std::stoi(data[0]);
+	//int sender = std::stoi(data[0]);
 	if (sender < ConnectedUsers.size()) {
 
-		ConnectedUsers[sender].udpAddress = serverUDP;
-		ConnectedUsers[sender].clientLength = clientLength;
+		ConnectedUsers[sender].udpAddress = address;
+		ConnectedUsers[sender].clientLength = length;
 		ConnectedUsers[sender].active = true;
 
 		char str[INET6_ADDRSTRLEN];
@@ -248,21 +248,25 @@ void ServerNetwork::startUpdates()
 				FD_SET(client, &master);
 				ConnectedUsers.push_back(newProfile);
 
-
 				//send outgoing connection packet back to client
 				Packet initPack;
 				initPack.sender = -1;
-				initPack.packet_type = INIT;
-				strcpy_s(initPack.data, (std::to_string(newProfile.index) + ",").c_str() + '\0');
+				initPack.packet_type = JOIN;
+				packet_join join;
+				join.playerID = newProfile.index;
+				memcpy(&initPack.data, &join, sizeof(packet_init));
 				sendTo(initPack, client);
 
+				// Need to update for Lobby
 			}
 			//UDP Input Socket
 			else if (sock == udp) {
 				char* buf = new char[MAX_PACKET_SIZE];
+				sockaddr_in fromAddr;
+				int fromLen = sizeof(fromAddr);
 
 				//recieve packet from socket
-				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &clientLength);
+				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (struct sockaddr*)&fromAddr, &fromLen);
 				if (length == SOCKET_ERROR) {
 					std::cout << "UDP Recieve Error: " << WSAGetLastError() << std::endl;
 				}
@@ -272,15 +276,17 @@ void ServerNetwork::startUpdates()
 					packet.deserialize(buf);
 
 					//process connection packet
-					if (packet.packet_type == PacketType::INIT) {
+					if (packet.packet_type == PacketType::JOIN) {
 						std::cout << "UDP Connection" << std::endl;
-						std::vector<std::string> parsedData;
+						//std::vector<std::string> parsedData;
+						//
+						////tokenize
+						//parsedData = Tokenizer::tokenize(',', packet.data);
+						//parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
+						packet_join join;
+						memcpy(&join, &packet.data, sizeof(packet_join));
 
-						//tokenize
-						parsedData = Tokenizer::tokenize(',', packet.data);
-						parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
-
-						acceptNewClient(parsedData, serverUDP, clientLength);
+						acceptNewClient(join.playerID, fromAddr, fromLen);
 						break;
 					}
 					else {
@@ -353,7 +359,7 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 	char packet_data[packet_size];
 
 	pack.serialize(packet_data);
-
+	
 	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
@@ -365,12 +371,10 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 //the TCP Send
 void ServerNetwork::sendTo(Packet pack, SOCKET client)
 {
-	const unsigned int packet_size = sizeof(pack);
-	char packet_data[packet_size];
-
+	char packet_data[sizeof(pack)];
 
 	pack.serialize(packet_data);
-	int sendOK = send(client, packet_data, packet_size, 0);
+	int sendOK = send(client, packet_data, sizeof(pack), 0);
 	if (sendOK == SOCKET_ERROR) {
 		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 	}
@@ -390,46 +394,52 @@ void ServerNetwork::ProcessTCP(Packet pack)
 
 		//relay the data
 	case PacketType::MESSAGE:
-		parsedData = Tokenizer::tokenize(',', pack.data);
-		std::cout << "TCP Message Recieved from user (" + std::to_string(pack.sender) + "):" << parsedData[0] << std::endl;
+		//parsedData = Tokenizer::tokenize(',', pack.data);
+		packet_msg msg;
+		memcpy(&msg, &pack.data, sizeof(packet_msg));
+		std::cout << "TCP Message Recieved from user (" + std::to_string(pack.sender) + "):" << std::string(msg.message) << std::endl;
 
 		relay(pack, true);
-
 		break;
 
-	case PacketType::WEAPON_STATE:
+	case PacketType::WEAPON:
 	case PacketType::BUILD:
 	case PacketType::KILL:
-	case PacketType::GAME_STATE:
+	case PacketType::STATE:
 		std::cout << "TCP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
 		relay(pack, true);
 		break;
 
 		//send the data to RTS player
-	case PacketType::DAMAGE_DEALT:
-		sendTo(pack, ConnectedUsers[0].tcpSocket);
-		break;
+	case PacketType::DAMAGE:
+		packet_damage dmg;
+		memcpy(&dmg, &pack.data, sizeof(packet_damage));
+		if (!dmg.dir)
+		{
+			sendTo(pack, ConnectedUsers[0].tcpSocket);
+			break;
+		}
+		else
+		{
+			//send the data to sepific player
+			//parsedData = Tokenizer::tokenize(',', pack.data);
+			sendTo(pack, ConnectedUsers[dmg.playerID].tcpSocket);
+			break;
+		}
 
-		//send the data to sepific player
-	case PacketType::PLAYER_DAMAGE:
-		parsedData = Tokenizer::tokenize(',', pack.data);
-		sendTo(pack, ConnectedUsers[stoi(parsedData[0])].tcpSocket);
-		break;
-
-	case PacketType::PLAYER_DATA:
-		std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
-		break;
-	case PacketType::ENTITY_DATA:
+	//case PacketType::PLAYER_DATA:
+	//	std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
+	//	break;
+	case PacketType::ENTITY:
 		std::cout << "Data Protocol Use Invalid: ENTITY_DATA:TCP";
 		break;
-	case PacketType::TURRET_DATA:
-		std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
-		break;
+	//case PacketType::TURRET_DATA:
+	//	std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
+	//	break;
 	default:
 		std::cout << "Error: TCP Unhandled Packet Type: " << pack.packet_type << std::endl;
 		break;
 	}
-
 }
 
 //processes all UDP Packets
@@ -441,16 +451,17 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	{
 		//relay the data to all clients
 	case PacketType::MESSAGE:
-		parsedData = Tokenizer::tokenize(',', pack.data);
+		packet_msg msg;
+		memcpy(&msg, &pack.data, sizeof(packet_msg));
+		std::cout << "UDP Message Recieved from user (" + std::to_string(pack.sender) + "):" << std::string(msg.message) << std::endl;
 
-		std::cout << "UDP Message Recieved from user (" + std::to_string(pack.sender) + "):" << parsedData[0] << std::endl;
 		relay(pack);
 
 		break;
-	case PacketType::ENTITY_DATA:
-	case PacketType::TURRET_DATA:
-		std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
-	case PacketType::PLAYER_DATA:
+	case PacketType::ENTITY:
+	//case PacketType::TURRET_DATA:
+	//	// std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
+	//case PacketType::PLAYER_DATA:
 		relay(pack, false);
 		break;
 
@@ -458,10 +469,10 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	case PacketType::INIT:
 		std::cout << "Error: Incomming connection packet through invalid TCP channels";
 		break;
-	case PacketType::WEAPON_STATE:
+	case PacketType::WEAPON:
 		std::cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
 		break;
-	case PacketType::DAMAGE_DEALT:
+	case PacketType::DAMAGE:
 		std::cout << "Data Protocol Use Invalid: DAMAGE_DEALT:UDP";
 		break;
 	case PacketType::BUILD:
@@ -470,12 +481,12 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	case PacketType::KILL:
 		std::cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
 		break;
-	case PacketType::GAME_STATE:
+	case PacketType::STATE:
 		std::cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
 		break;
-	case PacketType::PLAYER_DAMAGE:
-		std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
-		break;
+	//case PacketType::PLAYER_DAMAGE:
+	//	std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
+	//	break;
 	default:
 		std::cout << "Error: UDP Unhandled Packet Type:" << pack.packet_type << std::endl;
 		break;
@@ -519,5 +530,3 @@ void ServerNetwork::printOut(Packet pack, int clientID)
 		std::cout << parsedData[i] << std::endl;
 	}
 }
-
-

@@ -51,8 +51,8 @@ enum EntityType {
 
 };
 
-struct EntityData {
-	EntityData(unsigned int _id, EntityType _type) {
+struct Entity_Data {
+	Entity_Data(unsigned int _id, EntityType _type) {
 		type = _type;
 		id = _id;
 	}

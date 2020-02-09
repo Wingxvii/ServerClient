@@ -1,8 +1,6 @@
-﻿  main.cpp
-  ServerNetwork.cpp
-  Tokenizer.cpp
+﻿  ServerNetwork.cpp
   Generating code
-  Previous IPDB not found, fall back to full compilation.
-  All 368 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Previous IOBJ not found, fall back to full compilation.
+  All 272 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
-  Server.vcxproj -> C:\Users\jakob\OneDrive\Documents\_YEAR_3\Sem 2\Misc\ServerAndClient\ServerClient\Server\x64\Release\Server.exe
+  Server.vcxproj -> C:\Vzr\Repos\ServerClient\Server\x64\Release\Server.exe
