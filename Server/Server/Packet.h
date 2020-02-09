@@ -34,6 +34,12 @@ enum PacketType {
 	KILL
 };
 
+enum PlayerType {
+	RTS = 0,
+	FPS,
+	OTHER
+};
+
 struct Packet {
 
 	unsigned int packet_type;
@@ -51,10 +57,11 @@ struct Packet {
 };
 
 struct packet_init {
-	bool init;
+	int index;
 };
 
 struct packet_join {
+	PlayerType type;		// 0 = rts, 1 = fps
 	int playerID;
 };
 

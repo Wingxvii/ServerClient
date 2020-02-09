@@ -132,7 +132,6 @@ ServerNetwork::~ServerNetwork()
 void ServerNetwork::acceptNewClient(int sender, sockaddr_in address, int length)
 {
 	//processing must be done here
-	//int sender = std::stoi(data[0]);
 	if (sender < ConnectedUsers.size()) {
 
 		ConnectedUsers[sender].udpAddress = address;
@@ -251,13 +250,11 @@ void ServerNetwork::startUpdates()
 				//send outgoing connection packet back to client
 				Packet initPack;
 				initPack.sender = -1;
-				initPack.packet_type = JOIN;
-				packet_join join;
-				join.playerID = newProfile.index;
-				memcpy(&initPack.data, &join, sizeof(packet_init));
+				initPack.packet_type = INIT;
+				packet_init init;
+				init.index = newProfile.index;
+				memcpy(&initPack.data, &init, sizeof(packet_init));
 				sendTo(initPack, client);
-
-				// Need to update for Lobby
 			}
 			//UDP Input Socket
 			else if (sock == udp) {
@@ -266,7 +263,7 @@ void ServerNetwork::startUpdates()
 				int fromLen = sizeof(fromAddr);
 
 				//recieve packet from socket
-				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (struct sockaddr*)&fromAddr, &fromLen);
+				int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (struct sockaddr*) & fromAddr, &fromLen);
 				if (length == SOCKET_ERROR) {
 					std::cout << "UDP Recieve Error: " << WSAGetLastError() << std::endl;
 				}
@@ -276,17 +273,17 @@ void ServerNetwork::startUpdates()
 					packet.deserialize(buf);
 
 					//process connection packet
-					if (packet.packet_type == PacketType::JOIN) {
+					if (packet.packet_type == PacketType::INIT) {
 						std::cout << "UDP Connection" << std::endl;
 						//std::vector<std::string> parsedData;
 						//
 						////tokenize
 						//parsedData = Tokenizer::tokenize(',', packet.data);
 						//parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
-						packet_join join;
-						memcpy(&join, &packet.data, sizeof(packet_join));
+						packet_init init;
+						memcpy(&init, &packet.data, sizeof(packet_init));
 
-						acceptNewClient(join.playerID, fromAddr, fromLen);
+						acceptNewClient(init.index, fromAddr, fromLen);
 						break;
 					}
 					else {
@@ -302,7 +299,7 @@ void ServerNetwork::startUpdates()
 				char* buf = new char[MAX_PACKET_SIZE];
 
 				int length = recv(sock, buf, MAX_PACKET_SIZE, 0);
-				std::cout << length << std::endl;
+				//std::cout << length << std::endl;
 				//handles disconnection packets
 				if (length <= 0)
 				{
@@ -327,8 +324,6 @@ void ServerNetwork::startUpdates()
 					Packet packet;
 					packet.deserialize(buf);
 					ProcessTCP(packet);
-
-					
 				}
 
 				delete[] buf;
@@ -359,7 +354,7 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 	char packet_data[packet_size];
 
 	pack.serialize(packet_data);
-	
+
 	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
@@ -380,6 +375,13 @@ void ServerNetwork::sendTo(Packet pack, SOCKET client)
 	}
 }
 
+void ServerNetwork::SwapIndex(int current, int target)
+{
+	UserProfile tmp = ConnectedUsers[target];
+	ConnectedUsers[target] = ConnectedUsers[current];
+	ConnectedUsers[current] = tmp;
+}
+
 //processes all TCP Packets
 void ServerNetwork::ProcessTCP(Packet pack)
 {
@@ -391,7 +393,37 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	case PacketType::INIT:
 		std::cout << "Data Pipeline Error: INIT Connection not handled correctly";
 		break;
-
+	case PacketType::JOIN:
+		packet_join join;
+		memcpy(&join, &pack.data, sizeof(packet_join));
+		if (!join.type)
+		{
+			if (!rtsExists)
+			{
+				if (join.playerID != 0)
+				{
+					SwapIndex(join.playerID, 0);
+					join.playerID = 0;
+				}
+				rtsExists = true;
+				sendTo(pack, ConnectedUsers[0].tcpSocket);
+			}
+			else
+			{
+				std::cout << "RTS already exists: " << join.playerID << std::endl;
+			}
+		}
+		else if(join.type)
+		{
+			if (rtsExists)
+			{
+				if (join.playerID != 0)
+				{
+					sendTo(pack, ConnectedUsers[0].tcpSocket);
+				}
+			}
+		}
+		break;
 		//relay the data
 	case PacketType::MESSAGE:
 		//parsedData = Tokenizer::tokenize(',', pack.data);
@@ -427,15 +459,15 @@ void ServerNetwork::ProcessTCP(Packet pack)
 			break;
 		}
 
-	//case PacketType::PLAYER_DATA:
-	//	std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
-	//	break;
+		//case PacketType::PLAYER_DATA:
+		//	std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
+		//	break;
 	case PacketType::ENTITY:
 		std::cout << "Data Protocol Use Invalid: ENTITY_DATA:TCP";
 		break;
-	//case PacketType::TURRET_DATA:
-	//	std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
-	//	break;
+		//case PacketType::TURRET_DATA:
+		//	std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
+		//	break;
 	default:
 		std::cout << "Error: TCP Unhandled Packet Type: " << pack.packet_type << std::endl;
 		break;
@@ -459,9 +491,9 @@ void ServerNetwork::ProcessUDP(Packet pack)
 
 		break;
 	case PacketType::ENTITY:
-	//case PacketType::TURRET_DATA:
-	//	// std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
-	//case PacketType::PLAYER_DATA:
+		//case PacketType::TURRET_DATA:
+		//	// std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
+		//case PacketType::PLAYER_DATA:
 		relay(pack, false);
 		break;
 
@@ -484,9 +516,9 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	case PacketType::STATE:
 		std::cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
 		break;
-	//case PacketType::PLAYER_DAMAGE:
-	//	std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
-	//	break;
+		//case PacketType::PLAYER_DAMAGE:
+		//	std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
+		//	break;
 	default:
 		std::cout << "Error: UDP Unhandled Packet Type:" << pack.packet_type << std::endl;
 		break;

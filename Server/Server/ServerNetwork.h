@@ -42,6 +42,7 @@ public:
 	fd_set master;
 
 	bool listening = true;
+	bool rtsExists = false;
 
 	std::vector<Packet> packetsIn;
 
@@ -74,9 +75,9 @@ public:
 	//tcp send to
 	void sendTo(Packet pack, SOCKET client);
 
+	void SwapIndex(int current, int target);
+
 	void ProcessTCP(Packet pack);
 	void ProcessUDP(Packet pack);
-
-
 };
 
