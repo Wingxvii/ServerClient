@@ -1,6 +1,6 @@
 #pragma once
 #define MAX_PACKET_SIZE 6000
-#define DEFAULT_DATA_SIZE 5700
+#define DEFAULT_DATA_SIZE 5000
 
 #include <stdio.h>
 #include <stdlib.h>   
@@ -30,7 +30,7 @@
 //	//entity built
 //	BUILD = 6,
 //	//entity killed
-//	KILL = 7,
+//	DEATH = 7,
 //	//game state
 //	GAME_STATE = 8,
 //	//player damaged
@@ -61,7 +61,7 @@ enum PacketType {
 	// entity built
 	BUILD,
 	// entity killed
-	KILL
+	DEATH
 };
 
 enum PlayerType {

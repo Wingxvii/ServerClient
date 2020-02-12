@@ -1,6 +1,6 @@
 #pragma once
 #define MAX_PACKET_SIZE 6000
-#define DEFAULT_DATA_SIZE 5700
+#define DEFAULT_DATA_SIZE 5000
 
 #include <stdio.h>
 #include <stdlib.h>   
@@ -13,7 +13,8 @@ enum PacketType {
 	// initialization connection
 	INIT = 0,
 	// Join the Game
-	JOIN,
+	TYPE,
+	READY,
 	// single string
 	MESSAGE,
 	// game state
@@ -31,13 +32,31 @@ enum PacketType {
 	// entity built
 	BUILD,
 	// entity killed
-	KILL
+	DEATH
 };
 
 enum PlayerType {
-	RTS = 0,
-	FPS,
-	OTHER
+	OTHER = 0,
+	RTS,
+	FPS
+};
+
+enum PlayerMask
+{
+	SERVER = 1 << 0,
+	CLIENT1 = 1 << 1,
+	CLIENT2 = 1 << 2,
+	CLIENT3 = 1 << 3,
+	CLIENT4 = 1 << 4
+};
+
+enum GameState
+{
+	LOBBY = 0,
+	TIMER,
+	LOAD,
+	GAME,
+	ENDGAME
 };
 
 struct Packet {

@@ -48,7 +48,7 @@ public:
 
 	//client details
 	std::string filePath = "ErrorLog.txt";
-	std::string ipActual = "127.0.0.1";
+	std::string serverIP = "127.0.0.1";
 	int index = 0;
 	int error = 0;
 	int errorLoc = 0;
@@ -58,6 +58,8 @@ public:
 	bool connectToServer(std::string ip);
 
 	bool sendData(int packetType, char* data, size_t size, bool useTCP);
+
+	bool sendDataPacket(char* ptr, int length, bool TCP);
 
 	// int sendMessage(std::string message, bool useTCP = false);
 
@@ -90,9 +92,13 @@ extern "C" {
 	void (*receivePacketBuild)(int sender, packet_build data);
 	void (*receivePacketKill)(int sender, packet_kill data);
 
+	void (*receivePacket)(char* buffer, int length, bool TCP);
+
+
 	NETWORK_H ClientNetwork* CreateClient();
 	NETWORK_H void DeleteClient(ClientNetwork* client);
 	NETWORK_H bool Connect(char* ip, ClientNetwork* client);
+	NETWORK_H void SetupPacketReception(void(*action)(char* buffer, int length, bool TCP));
 	NETWORK_H void StartUpdating(ClientNetwork* client);
 	// NETWORK_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
 
@@ -115,6 +121,8 @@ extern "C" {
 	NETWORK_H bool SendDataWeapon(packet_weapon pkt, bool useTCP, ClientNetwork* client);
 	NETWORK_H bool SendDataBuild(packet_build pkt, bool useTCP, ClientNetwork* client);
 	NETWORK_H bool SendDataKill(packet_kill pkt, bool useTCP, ClientNetwork* client);
+
+	NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client);
 
 	NETWORK_H int GetPlayerNumber(ClientNetwork* client);
 
