@@ -76,18 +76,22 @@ public:
 	//accept and save new socket
 	void acceptNewClient(int sender, sockaddr_in address, int length);
 
+	void SetReady(bool readyState);
+
 	//begin listening to input signals
 	void startUpdates();
 
-	void PrintPackInfo(int sender, char* data, int datalen);
+	void PrintPackInfo(const char* extraInfo, int sender, char* data, int datalen);
 
 	template<class T>
 	void PackData(char* buffer, int* loc, T data);
 
+	void PackString(char* buffer, int* loc, std::string* str);
+
 	template<class T>
 	void UnpackData(char* buffer, int* loc, T* data);
 
-	void UnpackString(char* buffer, int* loc, std::string* str, int length);
+	void UnpackString(char* buffer, int* loc, std::string* str, int *length);
 
 	void PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender = -1);
 

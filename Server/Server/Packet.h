@@ -12,7 +12,7 @@
 enum PacketType {
 	// initialization connection
 	INIT = 0,
-	// Join the Game
+	USER,	
 	TYPE,
 	READY,
 	// single string
