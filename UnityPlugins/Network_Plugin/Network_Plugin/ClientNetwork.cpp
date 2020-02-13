@@ -69,8 +69,15 @@ NETWORK_H bool SendDataKill(packet_kill pkt, bool useTCP, ClientNetwork* client)
 	return client->sendData(PacketType::DEATH, (char*)&pkt, sizeof(packet_kill), useTCP);
 }
 
+NETWORK_H void SendDebugOutput(char* data)
+{
+	printf(data);
+	printf("\n");
+}
+
 NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client)
 {
+	std::cout << "DLL Sending Packet" << std::endl;
 	return client->sendDataPacket(ptr, length, TCP);
 }
 
@@ -208,16 +215,18 @@ ClientNetwork::~ClientNetwork()
 
 
 bool ClientNetwork::connectToServer(std::string ip)
-{
+{	
 	if (ip != "")
 	{
 		serverIP = ip;
 	}
+	//std::cout << ip << std::endl;
 
 	// Converting string ip address to actually ip address
 	//inet_pton(serverTCP.sin_family, ip.c_str(), &serverTCP.sin_addr);
 	//connecting to the tcp server
 
+	std::cout << "ConnectingTCP..." << std::endl;
 	if (getaddrinfo(serverIP.c_str(), "5000", &hintsTCP, &ptrTCP) != 0)
 	{
 		//std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
@@ -248,8 +257,14 @@ bool ClientNetwork::connectToServer(std::string ip)
 		closesocket(tcp);
 		freeaddrinfo(ptrTCP);
 		WSACleanup();
+
+		std::cout << "Connection Failed!" << std::endl;
+
 		return false;
 	}
+
+	std::cout << "Connected!" << std::endl;
+	std::cout << "ConnectingUDP..." << std::endl;
 
 	if (getaddrinfo(serverIP.c_str(), "5001", &hintsUDP, &ptrUDP) != 0)
 	{
@@ -271,8 +286,11 @@ bool ClientNetwork::connectToServer(std::string ip)
 		return false;
 	}
 
+	std::cout << "Connected UDP!" << std::endl;
+
 	//ping and determine client index
 	init = true;
+	std::cout << "Init value: " << (init ? "true" : "false") << std::endl;
 	return true;
 }
 
@@ -320,9 +338,13 @@ bool ClientNetwork::sendData(int packetType, char* data, size_t size, bool useTC
 
 bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 {
+	std::cout << "Sending Packets..." << (int)init << std::endl;
 	if (init)
 	{
+		std::cout << "Sending Inited" << std::endl;
 		if (!TCP) {
+			std::cout << "SENDING UDP DATA" << std::endl;
+			PrintPackInfo(1, ptr, length);
 			if (sendto(udp, ptr, DEFAULT_DATA_SIZE, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
 				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 				error = WSAGetLastError();
@@ -333,6 +355,7 @@ bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 		}
 		//tcp send
 		else {
+			std::cout << "SENDING TCP DATA" << std::endl;
 			if (send(tcp, ptr, DEFAULT_DATA_SIZE, 0) == SOCKET_ERROR)
 			{
 				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
@@ -349,18 +372,22 @@ bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 
 void ClientNetwork::startUpdates()
 {
+	std::cout << "Start Receiving..." << std::endl;
 	std::thread tcpUpdate = std::thread([&]()
 		{
 			char* buff = new char[DEFAULT_DATA_SIZE];
 
+			std::cout << "Started TCP" << std::endl;
 			while (listening) {
 				//receive packets
-				int length = recv(tcp, buff, DEFAULT_DATA_SIZE, 0);
-				if (length != SOCKET_ERROR) {
-					int length;
-					memcpy(&length, &buff, sizeof(length));
+				int sError = recv(tcp, buff, DEFAULT_DATA_SIZE, 0);
+				if (sError != SOCKET_ERROR) {
+					int pLength = 0;
 
-					receivePacket(buff, length, true);
+					memcpy(&pLength, &buff[0], sizeof(pLength));
+
+					PrintPackInfo(-1, buff, pLength);
+					receivePacket(buff, pLength, true);
 				}
 			}
 
@@ -368,18 +395,20 @@ void ClientNetwork::startUpdates()
 		});
 	tcpUpdate.detach();
 
+
 	std::thread udpUpdate = std::thread([&]()
 		{
+			std::cout << "Started UDP" << std::endl;
 			char* buff = new char[DEFAULT_DATA_SIZE];
 
 			while (listening) {
 				//receive messages
 				int sError = recv(udp, buff, DEFAULT_DATA_SIZE, 0);
 				if (sError != SOCKET_ERROR) {
-					int length;
-					memcpy(&length, &buff, sizeof(length));
-
-					receivePacket(buff, length, false);
+					int pLength = 0;
+					memcpy(&pLength, &buff[0], sizeof(pLength));
+					PrintPackInfo(-1, buff, pLength);
+					receivePacket(buff, pLength, false);
 				}
 			}
 
@@ -611,4 +640,15 @@ void ClientNetwork::ClearFile()
 void ClientNetwork::Reset()
 {
 
+}
+
+
+void ClientNetwork::PrintPackInfo(int sender, char* data, int dataLen)
+{
+	std::cout << "Sender: " << sender << ", " << dataLen << ", Data: ";
+	for (int i = 0; i < dataLen; ++i)
+	{
+		std::cout << (int)data[i] << "\t";
+	}
+	std::cout << "\nend" << std::endl;
 }

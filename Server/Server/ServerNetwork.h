@@ -20,7 +20,6 @@ struct UserProfile {
 	std::string clientIP;
 	int clientLength;
 
-	std::string user;
 	PlayerType type;
 	bool ready;
 	bool loaded;
@@ -80,8 +79,15 @@ public:
 	//begin listening to input signals
 	void startUpdates();
 
+	void PrintPackInfo(int sender, char* data, int datalen);
+
 	template<class T>
 	void PackData(char* buffer, int* loc, T data);
+
+	template<class T>
+	void UnpackData(char* buffer, int* loc, T* data);
+
+	void UnpackString(char* buffer, int* loc, std::string* str, int length);
 
 	void PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender = -1);
 
@@ -115,5 +121,12 @@ template<class T>
 inline void ServerNetwork::PackData(char* buffer, int* loc, T data)
 {
 	memcpy(buffer + *loc, &data, sizeof(T));
+	*loc += sizeof(T);
+}
+
+template<class T>
+inline void ServerNetwork::UnpackData(char* buffer, int* loc, T* data)
+{
+	memcpy(data, buffer + *loc, sizeof(T));
 	*loc += sizeof(T);
 }

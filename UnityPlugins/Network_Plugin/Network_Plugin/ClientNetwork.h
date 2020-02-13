@@ -73,6 +73,8 @@ public:
 	int GetErrorLoc();
 	std::string GetErrorText();
 
+	void PrintPackInfo(int sender, char* data, int datalen);
+
 	void UpdateFile();
 	void ClearFile();
 	void Reset();
@@ -121,6 +123,8 @@ extern "C" {
 	NETWORK_H bool SendDataWeapon(packet_weapon pkt, bool useTCP, ClientNetwork* client);
 	NETWORK_H bool SendDataBuild(packet_build pkt, bool useTCP, ClientNetwork* client);
 	NETWORK_H bool SendDataKill(packet_kill pkt, bool useTCP, ClientNetwork* client);
+
+	NETWORK_H void SendDebugOutput(char* data);
 
 	NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client);
 
