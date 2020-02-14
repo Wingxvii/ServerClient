@@ -121,7 +121,7 @@ void ServerNetwork::SetReady(bool readyState)
 			int loc = INITIAL_OFFSET;
 			int state = (int)GameState::TIMER;
 
-			PackData(packetData, &loc, state);
+			PackData<int>(packetData, &loc, state);
 			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
 
 			// Stop Timer
@@ -146,7 +146,7 @@ void ServerNetwork::SetReady(bool readyState)
 		int loc = INITIAL_OFFSET;
 		int state = (int)GameState::LOBBY;
 
-		PackData(packetData, &loc, state);
+		PackData<int>(packetData, &loc, state);
 		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
 
 		// Stop Timer
@@ -181,7 +181,7 @@ void ServerNetwork::StartGame()
 		char packetData[DEFAULT_DATA_SIZE];
 		int loc = INITIAL_OFFSET;
 
-		PackData(packetData, &loc, (int)GameState::GAME);
+		PackData<int>(packetData, &loc, (int)GameState::GAME);
 		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
 
 		for (int i = 0; i < clientCount; i++)
@@ -208,7 +208,7 @@ void ServerNetwork::StartLoading(float timer)
 		int loc = INITIAL_OFFSET;
 		int state = (int)GameState::LOAD;
 
-		PackData(packetData, &loc, state);
+		PackData<int>(packetData, &loc, state);
 		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
 
 		// Start Game
@@ -295,7 +295,7 @@ void ServerNetwork::SocketListening(SOCKET sock)
 			char packetData[DEFAULT_DATA_SIZE];
 			int loc = INITIAL_OFFSET;
 			std::cout << newProfile.index << std::endl;
-			PackData(packetData, &loc, newProfile.index);
+			PackData<int>(packetData, &loc, newProfile.index);
 			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::INIT);
 
 			PrintPackInfo("TCP INIT", -1, packetData, loc);
@@ -477,7 +477,7 @@ void ServerNetwork::PrintPackInfo(const char* extraInfo, int sender, char* data,
 
 void ServerNetwork::PackString(char* buffer, int* loc, std::string* str)
 {
-	PackData(buffer, loc, (int)str->size());
+	PackData<int>(buffer, loc, (int)str->size());
 	memcpy(buffer + *loc, &(*str)[0], (int)str->size());
 	*loc += str->size();
 }
@@ -493,10 +493,10 @@ void ServerNetwork::UnpackString(char* buffer, int* loc, std::string* str, int *
 void ServerNetwork::PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender)
 {
 	int loc = 0;
-	PackData(buffer, &loc, length);
-	PackData(buffer, &loc, receiver);
-	PackData(buffer, &loc, type);
-	PackData(buffer, &loc, sender);
+	PackData<int>(buffer, &loc, length);
+	PackData<int>(buffer, &loc, receiver);
+	PackData<int>(buffer, &loc, type);
+	PackData<int>(buffer, &loc, sender);
 }
 
 bool ServerNetwork::ChangeType(PlayerType requestedType)
@@ -552,7 +552,7 @@ void ServerNetwork::packetTCP(char* packet)
 			int strLen = 0;
 			std::string name = "";
 
-			UnpackData(packet, &loc, &id);
+			UnpackData<int>(packet, &loc, &id);
 			UnpackString(packet, &loc, &name, &strLen);
 
 			ConnectedUsers[id].Username = name;
@@ -566,7 +566,7 @@ void ServerNetwork::packetTCP(char* packet)
 				if (ConnectedUsers[i].active)
 				{
 					std::cout << "Active id: " << i << std::endl;
-					PackData(packetData, &loc, ConnectedUsers[i].index);
+					PackData<int>(packetData, &loc, ConnectedUsers[i].index);
 					PackString(packetData, &loc, &ConnectedUsers[i].Username);
 				}
 			}
@@ -637,7 +637,7 @@ void ServerNetwork::packetTCP(char* packet)
 			char packetData[DEFAULT_DATA_SIZE];
 			int loc = INITIAL_OFFSET;
 
-			PackData(packetData, &loc, (int)ConnectedUsers[sender].type);
+			PackData<int>(packetData, &loc, (int)ConnectedUsers[sender].type);
 			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::TYPE, sender);
 
 			for (int i = 0; i < clientCount; i++)
@@ -741,14 +741,18 @@ void ServerNetwork::packetTCP(char* packet)
 		}
 	}
 
+	int length;
+	memcpy(&length, packet, 4);
+	PrintPackInfo("BYPASS", -1, packet, length);
+
 	for (int i = 0; i < clientCount; ++i)
 	{
 		if (receiver & (1 << (i + 1)))
 		{
 			if (ConnectedUsers[i].active)
 			{
-				int length;
-				memcpy(&length, packet, 4);
+				//int length;
+				//memcpy(&length, packet, 4);
 				PrintPackInfo("RELAY TCP", i, packet, length);
 				int sendOK = send(ConnectedUsers[i].tcpSocket, packet, DEFAULT_DATA_SIZE, 0);
 				if (sendOK == SOCKET_ERROR) {
