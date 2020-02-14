@@ -477,10 +477,8 @@ void ServerNetwork::PrintPackInfo(const char* extraInfo, int sender, char* data,
 
 void ServerNetwork::PackString(char* buffer, int* loc, std::string* str)
 {
-	std::cout << "STRING: " << *str << std::endl;
-	std::cout << sizeof((int)str->size()) << std::endl;
 	PackData(buffer, loc, (int)str->size());
-	memcpy(buffer, &(*str)[0], str->size());
+	memcpy(buffer + *loc, &(*str)[0], (int)str->size());
 	*loc += str->size();
 }
 
@@ -489,7 +487,6 @@ void ServerNetwork::UnpackString(char* buffer, int* loc, std::string* str, int *
 	UnpackData<int>(buffer, loc, length);
 	str->resize(*length, 0);
 	memcpy(&(*str)[0], buffer + *loc, *length);
-	std::cout << "Unpacking String: " << *str << std::endl;
 	*loc += *length;
 }
 
