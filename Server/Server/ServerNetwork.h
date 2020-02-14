@@ -26,6 +26,7 @@ struct UserProfile {
 
 	//checks for disconnection
 	bool active = false;
+	bool activeUDP = false;
 };
 
 #pragma once
