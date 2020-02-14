@@ -54,7 +54,7 @@ public:
 	int GetErrorLoc();
 	std::string GetErrorText();
 
-	void PrintPackInfo(int sender, char* data, int datalen);
+	//void PrintPackInfo(int sender, char* data, int datalen);
 
 	void UpdateFile();
 	void ClearFile();

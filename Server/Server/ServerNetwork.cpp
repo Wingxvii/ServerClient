@@ -814,6 +814,7 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 	}
 	for (int i = 0; i < clientCount; ++i)
 	{
+		std::cout << "Receiver: " << receiver << " , Active: " << i << "; " << ConnectedUsers[i].active << std::endl;;
 		if (receiver & (1 << (i + 1)))
 		{
 			if (ConnectedUsers[i].active)

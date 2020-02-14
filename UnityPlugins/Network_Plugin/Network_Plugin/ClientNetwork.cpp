@@ -509,12 +509,12 @@ void ClientNetwork::Reset()
 }
 
 
-void ClientNetwork::PrintPackInfo(int sender, char* data, int dataLen)
-{
-	std::cout << "Sender: " << sender << ", " << dataLen << ", Data: ";
-	for (int i = 0; i < dataLen; ++i)
-	{
-		std::cout << (int)data[i] << "\t";
-	}
-	std::cout << "\nend" << std::endl;
-}
+//void ClientNetwork::PrintPackInfo(int sender, char* data, int dataLen)
+//{
+//	std::cout << "Sender: " << sender << ", " << dataLen << ", Data: ";
+//	for (int i = 0; i < dataLen; ++i)
+//	{
+//		std::cout << (int)data[i] << "\t";
+//	}
+//	std::cout << "\nend" << std::endl;
+//}
