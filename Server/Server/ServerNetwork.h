@@ -37,13 +37,13 @@ public:
 
 	//UDP Socket
 	SOCKET udp;
-	//struct addrinfo* ptrUDP = NULL, hintsUDP;
 	sockaddr_in serverUDP;
+	//struct addrinfo* ptrUDP = NULL, hintsUDP;
 	//int clientLength;
 
 	SOCKET tcp;
-	//struct addrinfo* ptrTCP = NULL, hintsTCP;
 	sockaddr_in serverTCP;
+	//struct addrinfo* ptrTCP = NULL, hintsTCP;
 	//master list of tracked TCP sockets
 	fd_set master;
 
@@ -63,7 +63,7 @@ public:
 	float deltaTime;
 	std::chrono::system_clock::time_point previousTime;
 
-	std::vector<Packet> packetsIn;
+	//std::vector<Packet> packetsIn;
 
 	std::vector<UserProfile> ConnectedUsers;
 	
@@ -71,29 +71,23 @@ public:
 
 public:
 	//initalize the entity game data
-	void initEntities();
+	//void initEntities();
 
 	//accept and save new socket
 	void acceptNewClient(int sender, sockaddr_in address, int length);
 
 	void SetReady(bool readyState);
 
+	void StartGame();
+
+	void StartLoading(float timer);
+
+	void SocketListening(SOCKET sock);
+
 	//begin listening to input signals
 	void startUpdates();
 
 	void PrintPackInfo(const char* extraInfo, int sender, char* data, int datalen);
-
-	template<class T>
-	void PackData(char* buffer, int* loc, T data);
-
-	void PackString(char* buffer, int* loc, std::string* str);
-
-	template<class T>
-	void UnpackData(char* buffer, int* loc, T* data);
-
-	void UnpackString(char* buffer, int* loc, std::string* str, int *length);
-
-	void PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender = -1);
 
 	bool ChangeType(PlayerType requestedType);
 
@@ -101,24 +95,31 @@ public:
 
 	void packetUDP(char* packet, sockaddr_in fromAddr, int fromLen);
 
-
-	//send to all clients
-	void sendToAll(Packet pack);
-	//send to sepific client(udp) (should not be used)
-	void sendTo(Packet pack, int clientID);
-
-
-	//send to all except a client
-	void relay(Packet pack, bool useTCP = false);
-	//print to cout
-	void printOut(Packet pack, int clientID);
-	//tcp send to
-	void sendTo(Packet pack, SOCKET client);
-
 	void SwapIndex(int current, int target);
 
-	void ProcessTCP(Packet pack);
-	void ProcessUDP(Packet pack);
+	void PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender = -1);
+
+	void PackString(char* buffer, int* loc, std::string* str);
+
+	template<class T>
+	void PackData(char* buffer, int* loc, T data);
+
+	template<class T>
+	void UnpackData(char* buffer, int* loc, T* data);
+
+	void UnpackString(char* buffer, int* loc, std::string* str, int *length);
+	////send to all clients
+	//void sendToAll(Packet pack);
+	////send to sepific client(udp) (should not be used)
+	//void sendTo(Packet pack, int clientID);
+	////send to all except a client
+	//void relay(Packet pack, bool useTCP = false);
+	////print to cout
+	//void printOut(Packet pack, int clientID);
+	////tcp send to
+	//void sendTo(Packet pack, SOCKET client);
+	//void ProcessTCP(Packet pack);
+	//void ProcessUDP(Packet pack);
 };
 
 template<class T>

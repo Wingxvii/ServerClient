@@ -8,134 +8,124 @@
 #include <ws2tcpip.h>
 
 #pragma comment (lib, "ws2_32.lib")
-//
+
 //enum PacketType {
-//	//initialization connection
+//	// initialization connection
 //	INIT = 0,
-//	//single string
-//	MESSAGE = 1,
+//	USER,
+//	TYPE,
+//	READY,
+//	// single string
+//	MESSAGE,
+//	// game state
+//	STATE,
 //
-//	//FPS Managed Data
-//	//data of players
-//	PLAYER_DATA = 2,
-//	//player weapon switch
-//	WEAPON_STATE = 3,
-//	//environment damage
-//	DAMAGE_DEALT = 4,
+//	// Entity Data
+//	ENTITY,
+//	// Damage dealt (int ID, bool Dir, int source, float damage)
+//	DAMAGE,
+//
+//	// FPS weapon switch
+//	WEAPON,
 //
 //	//RTS Managed Data
+//	// entity built
+//	BUILD,
+//	// entity killed
+//	DEATH
+//};
 //
-//	//data of all droids (up to 100)
-//	ENTITY_DATA = 5, // Entity Data
-//	//entity built
-//	BUILD = 6,
-//	//entity killed
-//	DEATH = 7,
-//	//game state
-//	GAME_STATE = 8,
-//	//player damaged
-//	PLAYER_DAMAGE = 9,
-//	//data of all turrets
-//	TURRET_DATA = 10
+//enum PlayerType {
+//	OTHER = 0,
+//	RTS,
+//	FPS
+//};
+//
+//enum PlayerMask
+//{
+//	SERVER = 1 << 0,
+//	CLIENT1 = 1 << 1,
+//	CLIENT2 = 1 << 2,
+//	CLIENT3 = 1 << 3,
+//	CLIENT4 = 1 << 4
+//};
+//
+//enum GameState
+//{
+//	LOBBY = 0,
+//	TIMER,
+//	LOAD,
+//	GAME,
+//	ENDGAME
 //};
 
-enum PacketType {
-	// initialization connection
-	INIT = 0,
-	// Join the Game
-	JOIN,
-	// single string
-	MESSAGE,
-	// game state
-	STATE,
 
-	// Entity Data
-	ENTITY,
-	// Damage dealt (int ID, bool Dir, int source, float damage)
-	DAMAGE,
-
-	// FPS weapon switch
-	WEAPON,
-
-	//RTS Managed Data
-	// entity built
-	BUILD,
-	// entity killed
-	DEATH
-};
-
-enum PlayerType {
-	RTS = 0,
-	FPS,
-	OTHER
-};
-
-struct Packet {
-
-	unsigned int packet_type;
-	int sender = 0;
-	char data[DEFAULT_DATA_SIZE];
-	unsigned int id = 0;
-
-	void serialize(char* data) {
-		memcpy(data, this, sizeof(Packet));
-	}
-
-	void deserialize(char* data) {
-		memcpy(this, data, sizeof(Packet));
-	}
-};
-
-NETWORK_H struct packet_init {
-	int index;
-};
-
-NETWORK_H struct packet_join {
-	PlayerType type;		// 0 = rts, 1 = fps
-	int playerID;
-};
-
-NETWORK_H struct packet_msg {
-	char* message;
-};
-
-NETWORK_H struct entity {
-	float posX;
-	float posY;
-	float posZ;
-	float rotX;
-	float rotY;
-	float rotZ;
-	int state;
-};
-
-NETWORK_H struct packet_entity {
-	entity entities[500];
-};
-
-NETWORK_H struct packet_weapon {
-	int weapon;
-};
-
-NETWORK_H struct packet_damage {
-	int playerID;
-	bool dir;
-	int entity;
-	float damage;
-};
-
-NETWORK_H struct packet_build {
-	int id;
-	int type;
-	float posX;
-	float posY;
-	float posZ;
-};
-
-NETWORK_H struct packet_kill {
-	int id;
-};
-
-NETWORK_H struct packet_state {
-	int state;
-};
+//struct Packet {
+//
+//	unsigned int packet_type;
+//	int sender = 0;
+//	char data[DEFAULT_DATA_SIZE];
+//	unsigned int id = 0;
+//
+//	void serialize(char* data) {
+//		memcpy(data, this, sizeof(Packet));
+//	}
+//
+//	void deserialize(char* data) {
+//		memcpy(this, data, sizeof(Packet));
+//	}
+//};
+//
+//NETWORK_H struct packet_init {
+//	int index;
+//};
+//
+//NETWORK_H struct packet_join {
+//	PlayerType type;		// 0 = rts, 1 = fps
+//	int playerID;
+//};
+//
+//NETWORK_H struct packet_msg {
+//	char* message;
+//};
+//
+//NETWORK_H struct entity {
+//	float posX;
+//	float posY;
+//	float posZ;
+//	float rotX;
+//	float rotY;
+//	float rotZ;
+//	int state;
+//};
+//
+//NETWORK_H struct packet_entity {
+//	entity entities[500];
+//};
+//
+//NETWORK_H struct packet_weapon {
+//	int weapon;
+//};
+//
+//NETWORK_H struct packet_damage {
+//	int playerID;
+//	bool dir;
+//	int entity;
+//	float damage;
+//};
+//
+//NETWORK_H struct packet_build {
+//	int id;
+//	int type;
+//	float posX;
+//	float posY;
+//	float posZ;
+//};
+//
+//NETWORK_H struct packet_kill {
+//	int id;
+//};
+//
+//NETWORK_H struct packet_state {
+//	int state;
+//};

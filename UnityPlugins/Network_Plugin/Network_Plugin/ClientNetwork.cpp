@@ -24,51 +24,6 @@ NETWORK_H void StartUpdating(ClientNetwork* client)
 	client->startUpdates();
 }
 
-NETWORK_H bool SendDataInit(packet_init pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::INIT, (char*)&pkt, sizeof(packet_init), useTCP);
-}
-
-NETWORK_H bool SendDataJoin(packet_join pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::JOIN, (char*)&pkt, sizeof(packet_join), useTCP);
-}
-
-NETWORK_H bool SendDataMsg(packet_msg pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::MESSAGE, (char*)&pkt, sizeof(packet_msg), useTCP);
-}
-
-NETWORK_H bool SendDataState(packet_state pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::STATE, (char*)&pkt, sizeof(packet_state), useTCP);
-}
-
-NETWORK_H bool SendDataEntity(packet_entity pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::ENTITY, (char*)&pkt, sizeof(packet_entity), useTCP);
-}
-
-NETWORK_H bool SendDataDamage(packet_damage pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::DAMAGE, (char*)&pkt, sizeof(packet_damage), useTCP);
-}
-
-NETWORK_H bool SendDataWeapon(packet_weapon pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::WEAPON, (char*)&pkt, sizeof(packet_weapon), useTCP);
-}
-
-NETWORK_H bool SendDataBuild(packet_build pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::BUILD, (char*)&pkt, sizeof(packet_build), useTCP);
-}
-
-NETWORK_H bool SendDataKill(packet_kill pkt, bool useTCP, ClientNetwork* client)
-{
-	return client->sendData(PacketType::DEATH, (char*)&pkt, sizeof(packet_kill), useTCP);
-}
-
 NETWORK_H void SendDebugOutput(char* data)
 {
 	printf(data);
@@ -77,65 +32,7 @@ NETWORK_H void SendDebugOutput(char* data)
 
 NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client)
 {
-	std::cout << "DLL Sending Packet" << std::endl;
 	return client->sendDataPacket(ptr, length, TCP);
-}
-
-
-
-//NETWORK_H void SetupPacketReception(void(*action)(int sender, char* data))
-//{
-//	receivePacket = action;
-//}
-
-NETWORK_H void SetupPacketReceptionInit(void(*action)(int sender, packet_init data))
-{
-	receivePacketInit = action;
-}
-
-NETWORK_H void SetupPacketReceptionJoin(void(*action)(int sender, packet_join data))
-{
-	receivePacketJoin = action;
-}
-
-NETWORK_H void SetupPacketReceptionMsg(void(*action)(int sender, packet_msg data))
-{
-	receivePacketMsg = action;
-}
-
-NETWORK_H void SetupPacketReceptionState(void(*action)(int sender, packet_state data))
-{
-	receivePacketState = action;
-}
-
-NETWORK_H void SetupPacketReceptionEntity(void(*action)(int sender, packet_entity data))
-{
-	receivePacketEntity = action;
-}
-
-NETWORK_H void SetupPacketReceptionDamage(void(*action)(int sender, packet_damage data))
-{
-	receivePacketDamage = action;
-}
-
-NETWORK_H void SetupPacketReceptionWeapon(void(*action)(int sender, packet_weapon data))
-{
-	receivePacketWeapon = action;
-}
-
-NETWORK_H void SetupPacketReceptionBuild(void(*action)(int sender, packet_build data))
-{
-	receivePacketBuild = action;
-}
-
-NETWORK_H void SetupPacketReceptionKill(void(*action)(int sender, packet_kill data))
-{
-	receivePacketKill = action;
-}
-
-NETWORK_H int GetPlayerNumber(ClientNetwork* client)
-{
-	return client->index;
 }
 
 NETWORK_H int GetError(ClientNetwork* client)
@@ -213,18 +110,12 @@ ClientNetwork::~ClientNetwork()
 	FreeConsole();
 }
 
-
 bool ClientNetwork::connectToServer(std::string ip)
 {	
 	if (ip != "")
 	{
 		serverIP = ip;
 	}
-	//std::cout << ip << std::endl;
-
-	// Converting string ip address to actually ip address
-	//inet_pton(serverTCP.sin_family, ip.c_str(), &serverTCP.sin_addr);
-	//connecting to the tcp server
 
 	std::cout << "ConnectingTCP..." << std::endl;
 	if (getaddrinfo(serverIP.c_str(), "5000", &hintsTCP, &ptrTCP) != 0)
@@ -262,10 +153,10 @@ bool ClientNetwork::connectToServer(std::string ip)
 
 		return false;
 	}
+	std::cout << "TCP Connected!" << std::endl;
 
-	std::cout << "Connected!" << std::endl;
+
 	std::cout << "ConnectingUDP..." << std::endl;
-
 	if (getaddrinfo(serverIP.c_str(), "5001", &hintsUDP, &ptrUDP) != 0)
 	{
 		error = WSAGetLastError();
@@ -285,66 +176,61 @@ bool ClientNetwork::connectToServer(std::string ip)
 		WSACleanup();
 		return false;
 	}
-
 	std::cout << "Connected UDP!" << std::endl;
 
 	//ping and determine client index
 	init = true;
-	std::cout << "Init value: " << (init ? "true" : "false") << std::endl;
 	return true;
 }
-
-bool ClientNetwork::sendData(int packetType, char* data, size_t size, bool useTCP)
-{
-	if (init)
-	{
-		//create packet
-		Packet packet;
-		memcpy(packet.data, &data, size);
-		packet.packet_type = packetType;
-		packet.sender = index;
-
-		//set size
-		const unsigned int packet_size = sizeof(packet);
-		char packet_data[packet_size];
-
-		//seralize
-		packet.serialize(packet_data);
-		//udp send
-		if (!useTCP) {
-			if (sendto(udp, packet_data, packet_size, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
-				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-				error = WSAGetLastError();
-				errorLoc = 6;
-				UpdateFile();
-				return false;
-			}
-		}
-		//tcp send
-		else {
-			if (send(tcp, packet_data, packet_size, 0) == SOCKET_ERROR)
-			{
-				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-				error = WSAGetLastError();
-				errorLoc = 7;
-				UpdateFile();
-				return false;
-			}
-		}
-		return true;
-	}
-	return false;
-}
+//
+//bool ClientNetwork::sendData(int packetType, char* data, size_t size, bool useTCP)
+//{
+//	if (init)
+//	{
+//		//create packet
+//		Packet packet;
+//		memcpy(packet.data, &data, size);
+//		packet.packet_type = packetType;
+//		packet.sender = index;
+//
+//		//set size
+//		const unsigned int packet_size = sizeof(packet);
+//		char packet_data[packet_size];
+//
+//		//seralize
+//		packet.serialize(packet_data);
+//		//udp send
+//		if (!useTCP) {
+//			if (sendto(udp, packet_data, packet_size, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
+//				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+//				error = WSAGetLastError();
+//				errorLoc = 6;
+//				UpdateFile();
+//				return false;
+//			}
+//		}
+//		//tcp send
+//		else {
+//			if (send(tcp, packet_data, packet_size, 0) == SOCKET_ERROR)
+//			{
+//				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+//				error = WSAGetLastError();
+//				errorLoc = 7;
+//				UpdateFile();
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
+//	return false;
+//}
 
 bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 {
-	std::cout << "Sending Packets..." << (int)init << std::endl;
 	if (init)
 	{
-		std::cout << "Sending Inited" << std::endl;
 		if (!TCP) {
-			std::cout << "SENDING UDP DATA" << std::endl;
-			PrintPackInfo(1, ptr, length);
+			//PrintPackInfo(1, ptr, length);
 			if (sendto(udp, ptr, DEFAULT_DATA_SIZE, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
 				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 				error = WSAGetLastError();
@@ -355,7 +241,6 @@ bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 		}
 		//tcp send
 		else {
-			std::cout << "SENDING TCP DATA" << std::endl;
 			if (send(tcp, ptr, DEFAULT_DATA_SIZE, 0) == SOCKET_ERROR)
 			{
 				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
@@ -372,12 +257,10 @@ bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 
 void ClientNetwork::startUpdates()
 {
-	std::cout << "Start Receiving..." << std::endl;
 	std::thread tcpUpdate = std::thread([&]()
 		{
 			char* buff = new char[DEFAULT_DATA_SIZE];
 
-			std::cout << "Started TCP" << std::endl;
 			while (listening) {
 				//receive packets
 				int sError = recv(tcp, buff, DEFAULT_DATA_SIZE, 0);
@@ -386,7 +269,7 @@ void ClientNetwork::startUpdates()
 
 					memcpy(&pLength, &buff[0], sizeof(pLength));
 
-					PrintPackInfo(-1, buff, pLength);
+					//PrintPackInfo(-1, buff, pLength);
 					receivePacket(buff, pLength, true);
 				}
 			}
@@ -398,7 +281,6 @@ void ClientNetwork::startUpdates()
 
 	std::thread udpUpdate = std::thread([&]()
 		{
-			std::cout << "Started UDP" << std::endl;
 			char* buff = new char[DEFAULT_DATA_SIZE];
 
 			while (listening) {
@@ -407,7 +289,7 @@ void ClientNetwork::startUpdates()
 				if (sError != SOCKET_ERROR) {
 					int pLength = 0;
 					memcpy(&pLength, &buff[0], sizeof(pLength));
-					PrintPackInfo(-1, buff, pLength);
+					//PrintPackInfo(-1, buff, pLength);
 					receivePacket(buff, pLength, false);
 				}
 			}
@@ -579,22 +461,6 @@ void ClientNetwork::startUpdates()
 	}
 }
 */
-std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
-{
-	std::vector<std::string> temp;
-	int lastTokenLocation = 0;
-
-	for (int i = 0; i < text.size(); i++) {
-		if (text[i] == token) {
-			temp.push_back(text.substr(lastTokenLocation, (size_t)(i - lastTokenLocation)));
-			lastTokenLocation = i + 1;
-
-		}
-	}
-	temp.push_back(text.substr(lastTokenLocation, text.size()));
-
-	return temp;
-}
 
 int ClientNetwork::GetError()
 {
