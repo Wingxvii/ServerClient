@@ -814,14 +814,14 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 	}
 	for (int i = 0; i < clientCount; ++i)
 	{
-		std::cout << "Receiver: " << receiver << " , Active: " << i << "; " << ConnectedUsers[i].active << std::endl;;
+		//std::cout << "Receiver: " << receiver << " , Active: " << i << "; " << ConnectedUsers[i].active << std::endl;;
 		if (receiver & (1 << (i + 1)))
 		{
 			if (ConnectedUsers[i].active)
 			{
 				int length;
 				memcpy(&length, packet, 4);
-				PrintPackInfo("RELAY UDP", i, packet, length);
+				//PrintPackInfo("RELAY UDP", i, packet, length);
 				int sendOK = sendto(udp, packet, DEFAULT_DATA_SIZE, 0, (sockaddr*)&ConnectedUsers[i].udpAddress, ConnectedUsers[i].clientLength);
 				if (sendOK == SOCKET_ERROR) {
 					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
