@@ -531,6 +531,12 @@ void ServerNetwork::packetTCP(char* packet)
 {
 	int receiver = 0;
 	memcpy(&receiver, packet + sizeof(int), sizeof(receiver));
+	if (true)
+	{
+		int length = 0;
+		memcpy(&length, packet, sizeof(length));
+		PrintPackInfo("DEFAULT GET", -69, packet, length);
+	}
 
 	if (receiver & PlayerMask::SERVER)
 	{
@@ -754,6 +760,7 @@ void ServerNetwork::packetTCP(char* packet)
 				//int length;
 				//memcpy(&length, packet, 4);
 				PrintPackInfo("RELAY TCP", i, packet, length);
+				std::cout << "Receiver: " << receiver << ", i:" << i << std::endl;
 				int sendOK = send(ConnectedUsers[i].tcpSocket, packet, DEFAULT_DATA_SIZE, 0);
 				if (sendOK == SOCKET_ERROR) {
 					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
