@@ -193,24 +193,6 @@ void ClientNetwork::ProcessTCP(Packet pack)
 		}
 		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
 		break;
-	case PacketType::PLAYER_DATA:
-		break;
-	case PacketType::WEAPON_DATA:
-		break;
-	case PacketType::ENVIRONMENT_DAMAGE:
-		break;
-	case PacketType::DROID_POSITION:
-		break;
-	case PacketType::BUILD_ENTITY:
-		break;
-	case PacketType::KILL_ENTITY:
-		break;
-	case PacketType::GAME_STATE:
-		break;
-	case PacketType::PLAYER_DAMAGE:
-		break;
-	case PacketType::TURRET_DATA:
-		break;
 
 	default:
 		break;
@@ -240,25 +222,6 @@ void ClientNetwork::ProcessUDP(Packet pack)
 		}
 		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
 		break;
-	case PacketType::PLAYER_DATA:
-		break;
-	case PacketType::WEAPON_DATA:
-		break;
-	case PacketType::ENVIRONMENT_DAMAGE:
-		break;
-	case PacketType::DROID_POSITION:
-		break;
-	case PacketType::BUILD_ENTITY:
-		break;
-	case PacketType::KILL_ENTITY:
-		break;
-	case PacketType::GAME_STATE:
-		break;
-	case PacketType::PLAYER_DAMAGE:
-		break;
-	case PacketType::TURRET_DATA:
-		break;
-
 	default:
 		break;
 	}

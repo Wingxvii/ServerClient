@@ -2,4 +2,5 @@
   main.cpp
   Generating Code...
   LINK : C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe not found or not built by the last incremental link; performing full link
+Tokenizer.obj : warning LNK4099: PDB 'vc142.pdb' was not found with 'Tokenizer.obj' or at 'C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\vc142.pdb'; linking object as if no debug info
   Server.vcxproj -> C:\Users\turnt\OneDrive\Documents\C++\ServerClient\Server\x64\Debug\Server.exe

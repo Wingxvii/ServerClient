@@ -77,7 +77,6 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 		ConnectedUsers[sender].clientIP = str;
 		cout << "Client " << ConnectedUsers[sender].index << " has connected." << endl;
 
-
 	}
 	else {
 		cout << "Connection Error";
@@ -323,34 +322,6 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		relay(pack, true);
 
 		break;
-
-	case PacketType::WEAPON_DATA:
-	case PacketType::BUILD_ENTITY:
-	case PacketType::KILL_ENTITY:
-	case PacketType::GAME_STATE:
-		relay(pack, true);
-		break;
-	
-	//send the data to RTS player
-	case PacketType::ENVIRONMENT_DAMAGE:
-		sendTo(pack, ConnectedUsers[0].tcpSocket);
-		break;
-
-	//send the data to sepific player
-	case PacketType::PLAYER_DAMAGE:
-		parsedData = Tokenizer::tokenize(',', pack.data);
-		sendTo(pack, stoi(parsedData[0]));
-		break;
-
-	case PacketType::PLAYER_DATA:
-		cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
-		break;
-	case PacketType::DROID_POSITION:
-		cout << "Data Protocol Use Invalid: DROID_POSITION:TCP";
-		break;
-	case PacketType::TURRET_DATA:
-		cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
-		break;
 	default:
 		cout << "Error: Unhandled Packet Type";
 		break;
@@ -372,34 +343,6 @@ void ServerNetwork::ProcessUDP(Packet pack)
 		cout << "UDP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
 		relay(pack);
 
-		break;
-	case PacketType::PLAYER_DATA:
-	case PacketType::DROID_POSITION:
-	case PacketType::TURRET_DATA:
-		relay(pack, false);
-		break;
-
-
-	case PacketType::INIT_CONNECTION:
-		cout << "Error: Incomming connection packet through invalid TCP channels";
-		break;
-	case PacketType::WEAPON_DATA:
-		cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
-		break;
-	case PacketType::ENVIRONMENT_DAMAGE:
-		cout << "Data Protocol Use Invalid: ENVIRONMENT_DAMAGE:UDP";
-		break;
-	case PacketType::BUILD_ENTITY:
-		cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
-		break;
-	case PacketType::KILL_ENTITY:
-		cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
-		break;
-	case PacketType::GAME_STATE:
-		cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
-		break;
-	case PacketType::PLAYER_DAMAGE:
-		cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
 		break;
 	default:
 		cout << "Error: Unhandled Packet Type";

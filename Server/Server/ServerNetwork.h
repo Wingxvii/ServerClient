@@ -52,9 +52,6 @@ public:
 	//std::vector<EntityData> entities;
 
 public:
-	//initalize the entity game data
-	void initEntities();
-
 	//accept and save new socket
 	void acceptNewClient(std::vector<std::string> data, sockaddr_in address, int length);
 

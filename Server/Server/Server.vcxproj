@@ -24,7 +24,6 @@
     <ClCompile Include="Tokenizer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GameData.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="ServerNetwork.h" />
     <ClInclude Include="Tokenizer.h" />

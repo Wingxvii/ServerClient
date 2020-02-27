@@ -42,28 +42,3 @@ struct Vector3
 		return A.x * x + A.y * y + A.z * z;
 	}
 };
-
-enum EntityType {
-	None,
-	Player,
-	Droid,
-	Turret,
-	Building,
-
-};
-
-struct EntityData {
-	EntityData(unsigned int _id, EntityType _type) {
-		type = _type;
-		id = _id;
-	}
-
-	EntityType type = None;
-	unsigned int id = 0;
-
-	Vector3 Position = Vector3();
-	Vector3 Rotation = Vector3();
-	
-	unsigned int state = 0;
-	unsigned int alternative = 0;
-};
