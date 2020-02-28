@@ -10,9 +10,11 @@ CNET_H void DeleteClient(ClientNetwork* client) {
 	delete client;
 }
 //connection
-CNET_H void Connect(char* ip, ClientNetwork* client)
+CNET_H void Connect(char* ip, char* username, ClientNetwork* client)
 {
 	string _ip = string(ip);
+	client->username = string(username);
+
 	client->connectToServer(_ip);
 }
 
@@ -26,14 +28,79 @@ CNET_H void SendData(int type, char* message, bool useTCP, ClientNetwork* client
 	client->sendData((PacketType)type, message, useTCP);
 }
 
-CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
-{
-	recievePacket = action;
-}
-
 CNET_H int GetPlayerNumber(ClientNetwork* client)
 {
 	return client->index;
+}
+
+CNET_H bool GetInGame(ClientNetwork* client)
+{
+	return client->inGame;
+}
+
+CNET_H bool GetRequestActive(ClientNetwork* client)
+{
+	return client->requestActive;
+}
+
+CNET_H int GetRequesterIndex(ClientNetwork* client)
+{
+	return client->requesterIndex;
+}
+
+//request game from player of index 
+CNET_H void RequestGame(int index, ClientNetwork* client)
+{
+	client->sendData(REQUEST_GAME, to_string(index), true);
+}
+
+//send response to request if one is active
+CNET_H void RespondToRequest(bool acceptance, ClientNetwork* client)
+{
+	if (!client->inGame) {
+		client->requestActive = false;
+
+		//join the game on local
+		if (acceptance) {
+			client->inGame = true;
+		}
+
+		client->sendData(REQUEST_RESPONSE, to_string(client->requesterIndex) + "," + to_string(acceptance), true);
+	}
+}
+//quits the current game
+CNET_H void QuitGame(ClientNetwork* client)
+{
+	if (client->inGame) {
+		client->sendData(GAME_QUIT, "", true);
+		client->inGame = false;
+	}
+}
+
+CNET_H void RequestLobbyData(ClientNetwork* client)
+{
+	client->sendData(LOBBY_DATA, "", true);
+}
+
+CNET_H void RequestSessionData(ClientNetwork* client)
+{
+	client->sendData(SESSION_DATA, "", true);
+}
+
+
+CNET_H void SetupUDPMessage(void(*action)(int sender, char* data))
+{
+	UDPMessage = action;
+}
+
+CNET_H void SetupOnConnect(void(*action)()) 
+{
+	onConnect = action;
+}
+
+CNET_H void SetupOnMessage(void(*action)(char* message))
+{
+	onMessage = action;
 }
 
 
@@ -143,57 +210,33 @@ void ClientNetwork::startUpdates()
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (listening) {
+		while (true) {
 			//recieve messages
 			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
 				packet.deserialize(buf);
-				if (packet.packet_type == INIT_CONNECTION) {
-					std::vector<std::string> parsedData;
-					parsedData = tokenize(',', packet.data);
-
-					index = std::stof(parsedData[0]);
-				}
-				else {
-					recievePacket(packet.packet_type, packet.sender, packet.data);
-				}
+				ProcessUDP(packet);
 			}
 		}
-	});
+		});
 	udpUpdate.detach();
 
 	thread tcpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (listening) {
+		while (true) {
 			//recieve packets
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
 				Packet packet;
 				packet.deserialize(buf);
-				if (packet.packet_type == INIT_CONNECTION) {
-					std::vector<std::string> parsedData;
-					parsedData = tokenize(',', packet.data);
-
-					index = std::stof(parsedData[0]);
-
-					recievePacket(packet.packet_type, -1, packet.data);
-
-					//connect to udp
-					inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
-
-					sendData(INIT_CONNECTION, to_string(index), false);
-				}
-				else {
-					recievePacket(packet.packet_type, packet.sender, packet.data);
-				}
+				ProcessTCP(packet);
 			}
 		}
 
-	});
+		});
 	tcpUpdate.detach();
-
 }
 std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 {
@@ -212,3 +255,76 @@ std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
 	return temp;
 }
 
+void ClientNetwork::ProcessTCP(Packet pack)
+{
+	std::vector<std::string> parsedData;
+	parsedData = tokenize(',', pack.data);
+
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		//filter by sender
+		if (pack.sender == -1) {
+			index = std::stof(parsedData[0]);
+
+			//connect to udp
+			inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
+			sendData(INIT_CONNECTION, to_string(index) + "," + username, false);
+		}
+		break;
+	case PacketType::MESSAGE:
+
+		onMessage(pack.data);
+		break;
+
+	case PacketType::REQUEST_GAME:
+		cout << "Recieved Game Request from user: " + parsedData[0] + " Please accept or deny";
+		requestActive = true;
+		requesterIndex = pack.sender;
+
+		break;
+	case PacketType::REQUEST_RESPONSE:
+		if (parsedData[0] == "1") {
+			cout << "Request for game Accepted by user: " + parsedData[1];
+			inGame = true;
+		}
+		else {
+			cout << "Request for game Denied by user: " + parsedData[1];
+			inGame = false;
+		}
+
+		break;
+
+	default:
+		cout << "Error Unhandled Type";
+
+		break;
+	}
+
+
+}
+
+void ClientNetwork::ProcessUDP(Packet pack)
+{
+	std::vector<std::string> parsedData;
+	parsedData = tokenize(',', pack.data);
+
+
+	switch (pack.packet_type) {
+	case PacketType::INIT_CONNECTION:
+		index = std::stof(parsedData[0]);
+		//call action
+		onConnect();
+		break;
+	case PacketType::MESSAGE:
+		//send UDP message
+		UDPMessage(pack.sender, pack.data);
+		break;
+
+
+	default:
+		cout << "Error Unhandled Type";
+
+		break;
+	}
+
+}

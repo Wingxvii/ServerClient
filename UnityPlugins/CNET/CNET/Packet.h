@@ -11,33 +11,21 @@
 
 enum PacketType {
 	//initialization connection
-	INIT_CONNECTION = 0,
+	INIT_CONNECTION,
 	//single string
-	MESSAGE = 1,
+	MESSAGE,
+	//requests 
+	REQUEST_GAME,
+	//request responses
+	REQUEST_RESPONSE,
+	//quit game
+	GAME_QUIT,
+	//request data
+	SESSION_DATA,
+	LOBBY_DATA,
 
-	//FPS Managed Data
-
-	//data of players
-	PLAYER_DATA = 2,
-	//player weapon switch
-	WEAPON_DATA = 3,
-	//environment damage
-	ENVIRONMENT_DAMAGE = 4,
-
-	//RTS Managed Data
-
-	//data of all droids (up to 100)
-	DROID_POSITION = 5,
-	//entity built
-	BUILD_ENTITY = 7,
-	//entity killed
-	KILL_ENTITY = 8,
-	//game state
-	GAME_STATE = 9,
-	//player damaged
-	PLAYER_DAMAGE = 10,
-	//data of all turrets
-	TURRET_DATA = 11,
+	//error
+	ERROR_PACKET,
 
 };
 
@@ -47,7 +35,7 @@ struct Packet {
 	unsigned int packet_type;
 	int sender = 0;
 	char data[DEFAULT_DATA_SIZE];
-	unsigned int id = 0;
+	int id = 0;
 
 	void serialize(char* data) {
 		memcpy(data, this, sizeof(Packet));
