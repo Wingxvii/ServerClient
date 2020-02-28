@@ -20,7 +20,9 @@ enum PacketType {
 	REQUEST_RESPONSE,
 	//quit game
 	GAME_QUIT,
-
+	//request data
+	SESSION_DATA,
+	LOBBY_DATA,
 
 	//error
 	ERROR_PACKET,

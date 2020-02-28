@@ -50,8 +50,15 @@ public:
 
 	//functions for assignment
 public:
+	//request session from other clients
 	void RequestGame(int index);
 	void RespondToRequest(bool acceptance);
+
+	//quit active session
 	void QuitGame();
+
+	//data requests from the server
+	void RequestLobbyData();
+	void RequestSessionData();
 
 };

@@ -319,6 +319,9 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	std::vector<std::string> parsedData;
 	parsedData = Tokenizer::tokenize(',', pack.data);
 
+	string outData = "";
+
+
 	//packet processing 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -335,7 +338,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		//send message to all in game
 		if (ConnectedUsers[pack.sender].inGame) {
 			for (int index : ActiveGames[ConnectedUsers[pack.sender].gameNumber]) {
-				sendTo(pack, index);
+				sendTo(pack, ConnectedUsers[index].tcpSocket);
 			}
 		}
 		else {
@@ -345,13 +348,13 @@ void ServerNetwork::ProcessTCP(Packet pack)
 
 	case PacketType::REQUEST_GAME:
 		//send a request game packet to target
-		sendTo(createPacket(REQUEST_GAME, ConnectedUsers[pack.sender].Username, pack.sender), stoi(parsedData[0]));
+		sendTo(createPacket(REQUEST_GAME, ConnectedUsers[pack.sender].Username, pack.sender), ConnectedUsers[stoi(parsedData[0])].tcpSocket );
 
 		break;
 	
 	case PacketType::REQUEST_RESPONSE:
 		//send response to target
-		sendTo(createPacket(REQUEST_RESPONSE, parsedData[1] + "," + ConnectedUsers[stoi(parsedData[0])].Username, pack.sender), stoi(parsedData[0]));
+		sendTo(createPacket(REQUEST_RESPONSE, parsedData[1] + "," + ConnectedUsers[stoi(parsedData[0])].Username, pack.sender), ConnectedUsers[stoi(parsedData[0])].tcpSocket);
 		
 		//enter the requester into a game with the sender
 		if (parsedData[0] == "1") {
@@ -375,6 +378,48 @@ void ServerNetwork::ProcessTCP(Packet pack)
 				ActiveGames.erase(ActiveGames.begin() + ConnectedUsers[pack.sender].gameNumber);
 			}
 		}
+		break;
+
+	case PacketType::SESSION_DATA:
+
+
+		for (int user : ActiveGames[ConnectedUsers[pack.sender].gameNumber]) {
+			//user index
+			outData += to_string(ConnectedUsers[user].index);
+			outData += ",";
+
+			//username
+			outData += ConnectedUsers[user].Username;
+			outData += ",";
+
+			//is busy
+			outData += to_string(1);
+			outData += ",";
+		}
+
+		sendTo(createPacket(LOBBY_DATA, outData, -1), ConnectedUsers[pack.sender].tcpSocket);
+
+
+		break;
+
+	case PacketType::LOBBY_DATA:
+
+		for (UserProfile user: ConnectedUsers) {
+			//user index
+			outData += to_string(user.index);
+			outData += ",";
+
+			//username
+			outData += user.Username;
+			outData += ",";
+
+			//is busy
+			outData += to_string(user.inGame);
+			outData += ",";
+		}
+
+		sendTo(createPacket(LOBBY_DATA, outData, -1), ConnectedUsers[pack.sender].tcpSocket);
+
 		break;
 
 	default:

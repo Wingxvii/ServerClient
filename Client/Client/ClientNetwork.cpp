@@ -262,3 +262,13 @@ void ClientNetwork::QuitGame()
 	}
 
 }
+
+void ClientNetwork::RequestLobbyData()
+{
+	sendData(LOBBY_DATA, "", true);
+}
+
+void ClientNetwork::RequestSessionData()
+{
+	sendData(SESSION_DATA, "", true);
+}
