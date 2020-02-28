@@ -158,12 +158,14 @@ void ClientNetwork::ProcessTCP(Packet pack)
 	std::vector<std::string> parsedData;
 	parsedData = tokenize(',', pack.data);
 
+	string dataOut = "";
+
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
 		//filter by sender
 		if (pack.sender == -1) {
 			index = std::stof(parsedData[0]);
-			cout << "Innitial Connection Recieved, index:" + parsedData[0] << endl;
+			//cout << "Innitial Connection Recieved, index:" + parsedData[0] << endl;
 			//connect to udp
 			inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
 			sendData(INIT_CONNECTION, to_string(index) + "," + username, false);
@@ -192,7 +194,10 @@ void ClientNetwork::ProcessTCP(Packet pack)
 			cout << "Request for game Denied by user: " + parsedData[1];
 			inGame = false;
 		}
-
+		break;
+	case PacketType::SESSION_DATA:
+		break;
+	case PacketType::LOBBY_DATA:
 		break;
 
 	default:
@@ -214,7 +219,9 @@ void ClientNetwork::ProcessUDP(Packet pack)
 	case PacketType::INIT_CONNECTION:
 		index = std::stof(parsedData[0]);
 		cout << "Connected." << endl;
+		connected = true;
 		break;
+
 	case PacketType::MESSAGE:
 		cout << "Message Recieved from user (" + parsedData[1] + "):" + parsedData[0] << endl;
 		break;

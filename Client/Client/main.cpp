@@ -7,17 +7,27 @@ using namespace std;
 bool running = true;
 
 int main() {
-	
+	string IPaddress;
 	//init network
 	ClientNetwork net = ClientNetwork();
 
-	//connect to default ip address
-	net.connectToServer();
+	cout << "Please enter your username: ";
+	cin >> net.username;
+	cout << "Plase enter the IP address: ";
+	cin >> IPaddress;
+
+	//connect to ip address
+	if (IPaddress != "") {
+		net.connectToServer(IPaddress);
+	}
+	else {
+		net.connectToServer();
+	}
 
 	net.startUpdates();
-
-
+	cout << "Connecting..." << endl;
 	while (true) {
+		if (!net.connected) { continue; }
 		string command;
 		std::getline(std::cin, command);
 

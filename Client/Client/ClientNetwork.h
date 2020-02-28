@@ -3,6 +3,7 @@
 #include <iostream>
 #include <thread>
 #include <queue>
+#include <ctime>
 #include "Packet.h"
 
 #pragma comment (lib, "ws2_32.lib")
@@ -24,7 +25,7 @@ public:
 	int serverlength;
 
 	bool listening = true;
-
+	bool connected = false;
 	//client details
 	string addressDefault = "127.0.0.1";
 	string ipActual = "";
@@ -35,6 +36,8 @@ public:
 	bool requestActive = false;
 	int requesterIndex = -1;
 
+
+	int updateDelay = 1000;
 public:
 	int connectToServer();
 	int connectToServer(string ip);
