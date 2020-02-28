@@ -33,74 +33,14 @@ CNET_H int GetPlayerNumber(ClientNetwork* client)
 	return client->index;
 }
 
-CNET_H bool GetInGame(ClientNetwork* client)
+CNET_H void SetupMessage(void(*action)(int type, int sender, char* data))
 {
-	return client->inGame;
-}
-
-CNET_H bool GetRequestActive(ClientNetwork* client)
-{
-	return client->requestActive;
-}
-
-CNET_H int GetRequesterIndex(ClientNetwork* client)
-{
-	return client->requesterIndex;
-}
-
-//request game from player of index 
-CNET_H void RequestGame(int index, ClientNetwork* client)
-{
-	client->sendData(REQUEST_GAME, to_string(index), true);
-}
-
-//send response to request if one is active
-CNET_H void RespondToRequest(bool acceptance, ClientNetwork* client)
-{
-	if (!client->inGame) {
-		client->requestActive = false;
-
-		//join the game on local
-		if (acceptance) {
-			client->inGame = true;
-		}
-
-		client->sendData(REQUEST_RESPONSE, to_string(client->requesterIndex) + "," + to_string(acceptance), true);
-	}
-}
-//quits the current game
-CNET_H void QuitGame(ClientNetwork* client)
-{
-	if (client->inGame) {
-		client->sendData(GAME_QUIT, "", true);
-		client->inGame = false;
-	}
-}
-
-CNET_H void RequestLobbyData(ClientNetwork* client)
-{
-	client->sendData(LOBBY_DATA, "", true);
-}
-
-CNET_H void RequestSessionData(ClientNetwork* client)
-{
-	client->sendData(SESSION_DATA, "", true);
-}
-
-
-CNET_H void SetupUDPMessage(void(*action)(int sender, char* data))
-{
-	UDPMessage = action;
+	Message = action;
 }
 
 CNET_H void SetupOnConnect(void(*action)()) 
 {
 	onConnect = action;
-}
-
-CNET_H void SetupOnMessage(void(*action)(char* message))
-{
-	onMessage = action;
 }
 
 
@@ -272,26 +212,12 @@ void ClientNetwork::ProcessTCP(Packet pack)
 		}
 		break;
 	case PacketType::MESSAGE:
-
-		onMessage(pack.data);
-		break;
-
 	case PacketType::REQUEST_GAME:
-		cout << "Recieved Game Request from user: " + parsedData[0] + " Please accept or deny";
-		requestActive = true;
-		requesterIndex = pack.sender;
-
-		break;
 	case PacketType::REQUEST_RESPONSE:
-		if (parsedData[0] == "1") {
-			cout << "Request for game Accepted by user: " + parsedData[1];
-			inGame = true;
-		}
-		else {
-			cout << "Request for game Denied by user: " + parsedData[1];
-			inGame = false;
-		}
+	case PacketType::SESSION_DATA:
+	case PacketType::LOBBY_DATA:
 
+		Message(pack.packet_type, pack.sender, pack.data);
 		break;
 
 	default:
@@ -299,15 +225,12 @@ void ClientNetwork::ProcessTCP(Packet pack)
 
 		break;
 	}
-
-
 }
 
 void ClientNetwork::ProcessUDP(Packet pack)
 {
 	std::vector<std::string> parsedData;
 	parsedData = tokenize(',', pack.data);
-
 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -317,10 +240,8 @@ void ClientNetwork::ProcessUDP(Packet pack)
 		break;
 	case PacketType::MESSAGE:
 		//send UDP message
-		UDPMessage(pack.sender, pack.data);
+		Message((int)PacketType::MESSAGE, pack.sender, pack.data);
 		break;
-
-
 	default:
 		cout << "Error Unhandled Type";
 
