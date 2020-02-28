@@ -157,7 +157,7 @@ void ServerNetwork::startUpdates()
 		//handle all active sockets
 		for (int i = 0; i < socketCount; i++)
 		{
-			cout << "Packet Recieved:";
+			//cout << "Packet Recieved:";
 
 			SOCKET sock = copy.fd_array[i];
 
@@ -214,6 +214,7 @@ void ServerNetwork::startUpdates()
 						parsedData = Tokenizer::tokenize(',', packet.data);
 
 						acceptNewClient(parsedData, serverUDP, clientLength);
+						sendTo(createPacket(INIT_CONNECTION, to_string(packet.sender), -1), packet.sender);
 						break;
 					}
 					else {
@@ -367,7 +368,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 			ConnectedUsers[pack.sender].inGame = false;
 
 			//remove user from list
-			for (int counter = 0; counter < ActiveGames[ConnectedUsers[pack.sender].gameNumber].size; counter++) {
+			for (int counter = 0; counter < ActiveGames[ConnectedUsers[pack.sender].gameNumber].size(); counter++) {
 				if (ActiveGames[ConnectedUsers[pack.sender].gameNumber][counter] == pack.sender) {
 					ActiveGames[ConnectedUsers[pack.sender].gameNumber].erase(ActiveGames[ConnectedUsers[pack.sender].gameNumber].begin() + counter);
 				}
@@ -461,7 +462,7 @@ void ServerNetwork::JoinGame(int requester, int responder)
 
 		//find game that responder is in
 		for (vector<int> game : ActiveGames) {
-			for (int counter = 0; counter < game.size; counter++) {
+			for (int counter = 0; counter < game.size(); counter++) {
 				//if found, add requester
 				if (game[counter] == responder) {
 					game.push_back(requester);
