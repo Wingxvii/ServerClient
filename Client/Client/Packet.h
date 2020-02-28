@@ -18,6 +18,12 @@ enum PacketType {
 	REQUEST_GAME,
 	//request responses
 	REQUEST_RESPONSE,
+	//quit game
+	GAME_QUIT,
+
+	//error
+	ERROR_PACKET,
+
 };
 
 
@@ -26,7 +32,7 @@ struct Packet {
 	unsigned int packet_type;
 	int sender = 0;
 	char data[DEFAULT_DATA_SIZE];
-	unsigned int id = 0;
+	int id = 0;
 
 	void serialize(char* data) {
 		memcpy(data, this, sizeof(Packet));

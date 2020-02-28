@@ -21,6 +21,7 @@ struct UserProfile {
 	int clientLength;
 
 	bool inGame = false;
+	int gameNumber = -1;
 	//checks for disconnection
 	bool active = false;
 };
@@ -50,8 +51,8 @@ public:
 
 	std::vector<UserProfile> ConnectedUsers;
 	
-	//games currently active
-	std::vector<std::vector<UserProfile>> ActiveGames;
+	//games currently active by index
+	std::vector<std::vector<int>> ActiveGames;
 
 
 
@@ -68,6 +69,8 @@ public:
 	//send to sepific client(udp) (should not be used)
 	void sendTo(Packet pack, int clientID);
 
+	//create packet
+	Packet createPacket(PacketType type, string data, int sender);
 
 	//send to all except a client
 	void relay(Packet pack, bool useTCP = false);
@@ -79,10 +82,9 @@ public:
 	void ProcessTCP(Packet pack);
 	void ProcessUDP(Packet pack);
 
-	//TODO: handle session requests
-	//TODO: send data about all users
-	//TODO: send data to only active game participants
-	//TODO: method to quit game
+	//enter into a game
+	void JoinGame(int requester, int responder);
 
+	//TODO: send data about all users
 };
 

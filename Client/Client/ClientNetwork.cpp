@@ -179,6 +179,8 @@ void ClientNetwork::ProcessTCP(Packet pack)
 
 	case PacketType::REQUEST_GAME:
 		cout << "Recieved Game Request from user: " + parsedData[0] + " Please accept or deny";
+		requestActive = true;
+		requesterIndex = pack.sender;
 
 		break;
 	case PacketType::REQUEST_RESPONSE:
@@ -189,7 +191,6 @@ void ClientNetwork::ProcessTCP(Packet pack)
 		else {
 			cout << "Request for game Denied by user: " + parsedData[1];
 			inGame = false;
-
 		}
 
 		break;
@@ -234,10 +235,30 @@ void ClientNetwork::RequestGame(int index)
 //send response to request if one is active
 void ClientNetwork::RespondToRequest(bool acceptance)
 {
-	//join the game on local
-	if (acceptance) {
-		inGame = true;
+	if (!inGame) {
+		requestActive = false;
+
+		//join the game on local
+		if (acceptance) {
+			inGame = true;
+		}
+
+		sendData(REQUEST_RESPONSE, to_string(requesterIndex) + "," + to_string(acceptance), true);
+	}
+	else {
+		cout << "Already in a game" << endl;
+	}
+}
+
+//quits the current game
+void ClientNetwork::QuitGame()
+{
+	if (inGame) {
+		sendData(GAME_QUIT, "", true);
+		inGame = false;
+	}
+	else {
+		cout << "Not in game.";
 	}
 
-	sendData(REQUEST_RESPONSE, to_string(acceptance), true);
 }

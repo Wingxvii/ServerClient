@@ -32,7 +32,8 @@ public:
 
 	string username = "test";
 	bool inGame = false;
-	bool inChat = false;
+	bool requestActive = false;
+	int requesterIndex = -1;
 
 public:
 	int connectToServer();
@@ -40,7 +41,6 @@ public:
 
 	void startUpdates();
 	int sendData(int packetType, string message, bool useTCP = false);	//udp send data
-
 	//tokenizes into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
 
@@ -52,5 +52,6 @@ public:
 public:
 	void RequestGame(int index);
 	void RespondToRequest(bool acceptance);
+	void QuitGame();
 
 };
