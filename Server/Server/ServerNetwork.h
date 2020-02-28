@@ -20,6 +20,7 @@ struct UserProfile {
 	string clientIP;
 	int clientLength;
 
+	bool inGame = false;
 	//checks for disconnection
 	bool active = false;
 };
@@ -49,7 +50,11 @@ public:
 
 	std::vector<UserProfile> ConnectedUsers;
 	
-	//std::vector<EntityData> entities;
+	//games currently active
+	std::vector<std::vector<UserProfile>> ActiveGames;
+
+
+
 
 public:
 	//accept and save new socket
@@ -74,6 +79,10 @@ public:
 	void ProcessTCP(Packet pack);
 	void ProcessUDP(Packet pack);
 
+	//TODO: handle session requests
+	//TODO: send data about all users
+	//TODO: send data to only active game participants
+	//TODO: method to quit game
 
 };
 

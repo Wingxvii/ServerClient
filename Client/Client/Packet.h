@@ -11,10 +11,13 @@
 
 enum PacketType {
 	//initialization connection
-	INIT_CONNECTION = 0,
+	INIT_CONNECTION,
 	//single string
-	MESSAGE = 1,
-
+	MESSAGE,
+	//requests 
+	REQUEST_GAME,
+	//request responses
+	REQUEST_RESPONSE,
 };
 
 

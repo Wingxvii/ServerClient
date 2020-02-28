@@ -70,12 +70,13 @@ void ServerNetwork::acceptNewClient(std::vector<std::string> data, sockaddr_in a
 		ConnectedUsers[sender].udpAddress = serverUDP;
 		ConnectedUsers[sender].clientLength = clientLength;
 		ConnectedUsers[sender].active = true;
+		ConnectedUsers[sender].Username = data[1];
 
 		char str[INET6_ADDRSTRLEN];
 
 		inet_ntop(AF_INET, &(ConnectedUsers[sender].udpAddress.sin_addr), str, INET_ADDRSTRLEN);
 		ConnectedUsers[sender].clientIP = str;
-		cout << "Client " << ConnectedUsers[sender].index << " has connected." << endl;
+		cout << "Client " << ConnectedUsers[sender].Username << " has connected." << endl;
 
 	}
 	else {
@@ -211,7 +212,6 @@ void ServerNetwork::startUpdates()
 
 						//tokenize
 						parsedData = Tokenizer::tokenize(',', packet.data);
-						parsedData.insert(parsedData.begin(), to_string(packet.sender));
 
 						acceptNewClient(parsedData, serverUDP, clientLength);
 						break;
@@ -281,7 +281,7 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 
 	pack.serialize(packet_data);
 
-	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
+	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID].udpAddress, ConnectedUsers[clientID].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 	}
@@ -317,11 +317,24 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	//relay the data
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
-		cout << "TCP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
+		cout << "TCP Message Recieved from user (" + ConnectedUsers[pack.sender].Username + "):" << parsedData[0] << endl;
+
+		//add username to message
+		strcpy_s(pack.data, (parsedData[0] + "," + ConnectedUsers[pack.sender].Username).c_str() + '\0');
 
 		relay(pack, true);
 
 		break;
+
+	case PacketType::REQUEST_GAME:
+
+		break;
+
+	case PacketType::REQUEST_RESPONSE:
+
+		break;
+
+
 	default:
 		cout << "Error: Unhandled Packet Type";
 		break;
@@ -340,7 +353,10 @@ void ServerNetwork::ProcessUDP(Packet pack)
 	case PacketType::MESSAGE:
 		parsedData = Tokenizer::tokenize(',', pack.data);
 
-		cout << "UDP Message Recieved from user (" + to_string(pack.sender) + "):" << parsedData[0] << endl;
+		cout << "UDP Message Recieved from user (" + ConnectedUsers[pack.sender].Username + "):" << parsedData[0] << endl;
+		//add username to message
+		strcpy_s(pack.data, (parsedData[0] + "," + ConnectedUsers[pack.sender].Username).c_str() + '\0');
+
 		relay(pack);
 
 		break;

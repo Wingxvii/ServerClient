@@ -102,17 +102,6 @@ int ClientNetwork::sendData(int packetType, string message, bool useTCP)
 
 void ClientNetwork::startUpdates()
 {
-	/*
-	thread CommandLine = thread([&]() {
-
-		while (listening) {
-			string command;
-			cin >> command;
-		}
-
-		});
-	CommandLine.detach();
-	*/
 	//multithread
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
@@ -168,9 +157,6 @@ void ClientNetwork::ProcessTCP(Packet pack)
 {
 	std::vector<std::string> parsedData;
 	parsedData = tokenize(',', pack.data);
-	//all needed data types
-	string message = "";
-	//cout << "TCP MESSAGE RECIEVED";
 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -180,21 +166,37 @@ void ClientNetwork::ProcessTCP(Packet pack)
 			cout << "Innitial Connection Recieved, index:" + parsedData[0] << endl;
 			//connect to udp
 			inet_pton(AF_INET, ipActual.c_str(), &serverUDP.sin_addr);
-
-			sendData(INIT_CONNECTION, to_string(index), false);
+			sendData(INIT_CONNECTION, to_string(index) + "," + username, false);
 		}
 		else {
 			//do nothing
 		}
 		break;
 	case PacketType::MESSAGE:
-		for (int counter = 0; counter < parsedData.size(); counter++) {
-			message = message + parsedData[counter];
+
+		cout << "Message Recieved from user (" + parsedData[1] + "):" + parsedData[0] << endl;
+		break;
+
+	case PacketType::REQUEST_GAME:
+		cout << "Recieved Game Request from user: " + parsedData[0] + " Please accept or deny";
+
+		break;
+	case PacketType::REQUEST_RESPONSE:
+		if (parsedData[0] == "1") {
+			cout << "Request for game Accepted by user: " + parsedData[1];
+			inGame = true;
 		}
-		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
+		else {
+			cout << "Request for game Denied by user: " + parsedData[1];
+			inGame = false;
+
+		}
+
 		break;
 
 	default:
+		cout << "Error Unhandled Type";
+
 		break;
 	}
 
@@ -206,10 +208,6 @@ void ClientNetwork::ProcessUDP(Packet pack)
 	std::vector<std::string> parsedData;
 	parsedData = tokenize(',', pack.data);
 
-	//all needed data types
-	string message = "";
-	//cout << "UDP MESSAGE RECIEVED";
-
 
 	switch (pack.packet_type) {
 	case PacketType::INIT_CONNECTION:
@@ -217,13 +215,29 @@ void ClientNetwork::ProcessUDP(Packet pack)
 		cout << "Connected." << endl;
 		break;
 	case PacketType::MESSAGE:
-		for (int counter = 0; counter < parsedData.size(); counter++) {
-			message = message + parsedData[counter];
-		}
-		cout << "Message Recieved  from user (" + to_string(pack.sender) + "):" + message << endl;
+		cout << "Message Recieved from user (" + parsedData[1] + "):" + parsedData[0] << endl;
 		break;
 	default:
+		cout << "Error Unhandled Type";
+
 		break;
 	}
 
+}
+
+//request game from player of index 
+void ClientNetwork::RequestGame(int index)
+{
+	sendData(REQUEST_GAME, to_string(index), true);
+}
+
+//send response to request if one is active
+void ClientNetwork::RespondToRequest(bool acceptance)
+{
+	//join the game on local
+	if (acceptance) {
+		inGame = true;
+	}
+
+	sendData(REQUEST_RESPONSE, to_string(acceptance), true);
 }

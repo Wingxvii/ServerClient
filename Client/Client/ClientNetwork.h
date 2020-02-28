@@ -30,6 +30,10 @@ public:
 	string ipActual = "";
 	int index = 0;
 
+	string username = "test";
+	bool inGame = false;
+	bool inChat = false;
+
 public:
 	int connectToServer();
 	int connectToServer(string ip);
@@ -43,5 +47,10 @@ public:
 	void ProcessTCP(Packet pack);
 	void ProcessUDP(Packet pack);
 
+
+	//functions for assignment
+public:
+	void RequestGame(int index);
+	void RespondToRequest(bool acceptance);
 
 };
