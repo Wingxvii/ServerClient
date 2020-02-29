@@ -1,4 +1,1 @@
-﻿  ServerNetwork.cpp
-C:\Users\boris\Documents\Repo\Distributed Systems & Networking\Assignment 1\ServerClient\Server\Server\ServerNetwork.cpp(478,60): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\boris\Documents\Repo\Distributed Systems & Networking\Assignment 1\ServerClient\Server\Server\ServerNetwork.cpp(479,60): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  Server.vcxproj -> C:\Users\boris\Documents\Repo\Distributed Systems & Networking\Assignment 1\ServerClient\Server\x64\Debug\Server.exe
+﻿  Server.vcxproj -> C:\Users\Boris\Documents\Repo\Distributed System & Networking\ServerClient\Server\x64\Debug\Server.exe
