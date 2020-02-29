@@ -164,9 +164,54 @@ void ServerNetwork::SetReady(bool readyState)
 	}
 }
 
+void ServerNetwork::StartLoading(float timer)
+{
+	std::cout << "Countdown Timer: " << timer << ", DT: " << deltaTime << std::endl;
+	if (timer <= 0.0f)
+	{
+		if (ConnectedUsers[0].type != PlayerType::RTS && rtsPlayers != 0)
+		{
+			for (int i = 1; i < clientCount; i++)
+			{
+				if (ConnectedUsers[i].type == PlayerType::RTS)
+				{
+					SwapIndex(0, i);
+				}
+			}
+		}
+		else
+		{
+			// Need to add expection handling
+			std::cout << "@@@@@ NO RTS Player! @@@@@" << std::endl;
+		}
+
+		char packetData[DEFAULT_DATA_SIZE];
+		timeOut = 60.f;
+		int loc = INITIAL_OFFSET;
+		int state = (int)GameState::LOAD;
+
+		PackData<int>(packetData, &loc, state);
+		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
+
+		// Start Game
+		for (int i = 0; i < clientCount; i++)
+		{
+			if (ConnectedUsers[i].active)
+			{
+				int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+				if (sendOK == SOCKET_ERROR) {
+					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+				}
+			}
+		}
+		gameLoading = true;
+
+
+	}
+}
+
 void ServerNetwork::StartGame()
 {
-
 	for (int i = 0; i < clientCount; i++)
 	{
 		if (ConnectedUsers[i].loaded == false)
@@ -198,31 +243,24 @@ void ServerNetwork::StartGame()
 	}
 }
 
-void ServerNetwork::StartLoading(float timer)
+void ServerNetwork::EndGame()
 {
-	std::cout << "Countdown Timer: " << timer << ", DT: " << deltaTime << std::endl;
-	if (timer <= 0.0f)
+	char packetData[DEFAULT_DATA_SIZE];
+	int loc = INITIAL_OFFSET;
+
+	PackData<int>(packetData, &loc, (int)GameState::ENDGAME);
+	PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
+
+	for (int i = 0; i < clientCount; i++)
 	{
-		char packetData[DEFAULT_DATA_SIZE];
-		timeOut = 60.f;
-		int loc = INITIAL_OFFSET;
-		int state = (int)GameState::LOAD;
-
-		PackData<int>(packetData, &loc, state);
-		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
-
-		// Start Game
-		for (int i = 0; i < clientCount; i++)
+		if (ConnectedUsers[i].active)
 		{
-			if (ConnectedUsers[i].active)
-			{
-				int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-				if (sendOK == SOCKET_ERROR) {
-					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-				}
+			PrintPackInfo("GAME ENDED", i, packetData, loc);
+			int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+			if (sendOK == SOCKET_ERROR) {
+				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 			}
 		}
-		gameLoading = true;
 	}
 }
 
@@ -230,43 +268,43 @@ void ServerNetwork::SocketListening(SOCKET sock)
 {
 	//UDP Input Socket
 	if (sock == udp) {
-	char* buf = new char[MAX_PACKET_SIZE];
-	sockaddr_in fromAddr;
-	int fromLen = sizeof(fromAddr);
+		char* buf = new char[MAX_PACKET_SIZE];
+		sockaddr_in fromAddr;
+		int fromLen = sizeof(fromAddr);
 
-	//recieve packet from socket
-	int sError = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (struct sockaddr*) & fromAddr, &fromLen);
+		//recieve packet from socket
+		int sError = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (struct sockaddr*) & fromAddr, &fromLen);
 
-	if (sError == SOCKET_ERROR) {
-		std::cout << "UDP Recieve Error: " << WSAGetLastError() << std::endl;
-	}
-	else {
-		packetUDP(buf, fromAddr, fromLen);
-		//deseralize socket data into packet
-		//Packet packet;
-		//packet.deserialize(buf);
-		//std::cout << "Received UDP Packet: " << packet.packet_type << std::endl;
-		//process connection packet
-		//if (packet.packet_type == PacketType::INIT) {
-		//	std::cout << "UDP Connection" << std::endl;
-		//	//std::vector<std::string> parsedData;
-		//	////tokenize
-		//	//parsedData = Tokenizer::tokenize(',', packet.data);
-		//	//parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
-		//	packet_init init;
-		//	memcpy(&init, &packet.data, sizeof(packet_init));
-		//
-		//	acceptNewClient(init.index, fromAddr, fromLen);
-		//	break;
-		//}
-		//else {
-		//	//process if not connection
-		//	//ProcessUDP(packet);
-		//	
-		//}
-	}
+		if (sError == SOCKET_ERROR) {
+			std::cout << "UDP Recieve Error: " << WSAGetLastError() << std::endl;
+		}
+		else {
+			packetUDP(buf, fromAddr, fromLen);
+			//deseralize socket data into packet
+			//Packet packet;
+			//packet.deserialize(buf);
+			//std::cout << "Received UDP Packet: " << packet.packet_type << std::endl;
+			//process connection packet
+			//if (packet.packet_type == PacketType::INIT) {
+			//	std::cout << "UDP Connection" << std::endl;
+			//	//std::vector<std::string> parsedData;
+			//	////tokenize
+			//	//parsedData = Tokenizer::tokenize(',', packet.data);
+			//	//parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
+			//	packet_init init;
+			//	memcpy(&init, &packet.data, sizeof(packet_init));
+			//
+			//	acceptNewClient(init.index, fromAddr, fromLen);
+			//	break;
+			//}
+			//else {
+			//	//process if not connection
+			//	//ProcessUDP(packet);
+			//	
+			//}
+		}
 
-	delete[] buf;
+		delete[] buf;
 	}
 	else if (sock == tcp)
 	{
@@ -482,7 +520,7 @@ void ServerNetwork::PackString(char* buffer, int* loc, std::string* str)
 	*loc += str->size();
 }
 
-void ServerNetwork::UnpackString(char* buffer, int* loc, std::string* str, int *length)
+void ServerNetwork::UnpackString(char* buffer, int* loc, std::string* str, int* length)
 {
 	UnpackData<int>(buffer, loc, length);
 	str->resize(*length, 0);
@@ -531,12 +569,12 @@ void ServerNetwork::packetTCP(char* packet)
 {
 	int receiver = 0;
 	memcpy(&receiver, packet + sizeof(int), sizeof(receiver));
-	if (true)
-	{
-		int length = 0;
-		memcpy(&length, packet, sizeof(length));
-		PrintPackInfo("DEFAULT GET", -69, packet, length);
-	}
+	//if (true)
+	//{
+	//	int length = 0;
+	//	memcpy(&length, packet, sizeof(length));
+	//	PrintPackInfo("DEFAULT GET", -69, packet, length);
+	//}
 
 	if (receiver & PlayerMask::SERVER)
 	{
@@ -544,206 +582,218 @@ void ServerNetwork::packetTCP(char* packet)
 		memcpy(&packetType, packet + (sizeof(int) * 2), sizeof(packetType));
 		int sender;
 		memcpy(&sender, packet + (sizeof(int) * 3), sizeof(sender));
-		switch (packetType)
+		if (sender >= 0 && sender < ConnectedUsers.size())
 		{
-		case PacketType::INIT:
-		{
-
-		}
-		break;
-		case PacketType::USER:
-		{
-			int loc = INITIAL_OFFSET;
-			int id = 0;
-			int strLen = 0;
-			std::string name = "";
-
-			UnpackData<int>(packet, &loc, &id);
-			UnpackString(packet, &loc, &name, &strLen);
-
-			ConnectedUsers[id].Username = name;
-			std::cout << "User: " << ConnectedUsers[id].Username << std::endl;
-
-			char packetData[DEFAULT_DATA_SIZE];
-			loc = INITIAL_OFFSET;
-
-			for (int i = 0; i < clientCount; i++)
+			switch (packetType)
 			{
-				if (ConnectedUsers[i].active)
+			case PacketType::INIT:
+			{
+
+			}
+			break;
+			case PacketType::USER:
+			{
+				int loc = INITIAL_OFFSET;
+				int id = 0;
+				int strLen = 0;
+				std::string name = "";
+
+				UnpackData<int>(packet, &loc, &id);
+				UnpackString(packet, &loc, &name, &strLen);
+
+				if (id < ConnectedUsers.size() && id >= 0)
 				{
-					std::cout << "Active id: " << i << std::endl;
-					PackData<int>(packetData, &loc, ConnectedUsers[i].index);
-					PackString(packetData, &loc, &ConnectedUsers[i].Username);
-				}
-			}
+					ConnectedUsers[id].Username = name;
+					std::cout << "User: " << ConnectedUsers[id].Username << std::endl;
 
-			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::USER);
-			PrintPackInfo("User Relay", -1, packetData, loc);
-			
-			int sendOK = send(ConnectedUsers[id].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-			if (sendOK == SOCKET_ERROR) {
-				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			}
-		}
-		break;
-		case PacketType::TYPE:
-		{
-			if (ConnectedUsers[sender].ready)
-			{
-				break;
-			}
+					char packetData[DEFAULT_DATA_SIZE];
+					loc = INITIAL_OFFSET;
 
-			int playerType;
-			memcpy(&playerType, packet + (sizeof(int) * 4), sizeof(playerType));
-			// Check for type and send confirmation - Receive Type, Do check, Send back type or send other type
-			int currentType = (int)ConnectedUsers[sender].type;
-
-			std::cout << "Current Type: " << currentType << ", Requested Type: " << playerType
-				<< "RTS Players: " << rtsPlayers << ", FPS Players: " << fpsPlayers << std::endl;
-			if (currentType == playerType)
-			{
-				ConnectedUsers[sender].type = (PlayerType)OTHER;
-				switch (currentType)
-				{
-				case PlayerType::FPS:
-					--fpsPlayers;
-					break;
-				case PlayerType::RTS:
-					--rtsPlayers;
-					break;
-				}
-			}
-			else
-			{
-				switch (currentType)
-				{
-				case PlayerType::OTHER:
-					if (ChangeType((PlayerType)playerType))
+					for (int i = 0; i < clientCount; i++)
 					{
-						ConnectedUsers[sender].type = (PlayerType)playerType;
+						if (ConnectedUsers[i].active)
+						{
+							std::cout << "Active id: " << i << std::endl;
+							PackData<int>(packetData, &loc, ConnectedUsers[i].index);
+							PackString(packetData, &loc, &ConnectedUsers[i].Username);
+						}
 					}
-					break;
-				case PlayerType::RTS:
-					if (ChangeType((PlayerType)playerType))
-					{
-						--rtsPlayers;
-						ConnectedUsers[sender].type = (PlayerType)playerType;
-					}
-					break;
-				case PlayerType::FPS:
-					if (ChangeType((PlayerType)playerType))
-					{
-						--fpsPlayers;
-						ConnectedUsers[sender].type = (PlayerType)playerType;
-					}
-					break;
-				}
-			}
 
-			char packetData[DEFAULT_DATA_SIZE];
-			int loc = INITIAL_OFFSET;
+					PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::USER);
+					PrintPackInfo("User Relay", -1, packetData, loc);
 
-			PackData<int>(packetData, &loc, (int)ConnectedUsers[sender].type);
-			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::TYPE, sender);
-
-			for (int i = 0; i < clientCount; i++)
-			{
-				if (ConnectedUsers[i].active)
-				{
-					PrintPackInfo("TYPE CONFIRMATION", i, packetData, loc);
-					int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+					int sendOK = send(ConnectedUsers[id].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
 					if (sendOK == SOCKET_ERROR) {
 						std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 					}
 				}
 			}
-		}
-		break;
-		case PacketType::READY:
-		{
-			bool ready;
-			memcpy(&ready, packet + (sizeof(int) * 4), sizeof(ready));
-			ConnectedUsers[sender].ready = ready;
-			SetReady(ready);
-			//if (ready)
-			//{
-			//	allReady = true;
-			//	// Check all other readys
-			//	for (int i = 0; i < clientCount; i++)
-			//	{
-			//		if (!ConnectedUsers[i].ready)
-			//		{
-			//			allReady = false;
-			//			break;
-			//		}
-			//	}
-			//	if (allReady)
-			//	{
-			//		char packetData[DEFAULT_DATA_SIZE];
-			//		int loc = INITIAL_OFFSET;
-			//		int state = (int)GameState::TIMER;
-			//
-			//		PackData(packetData, &loc, state);
-			//		PackAuxilaryData(packetData, 20, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
-			//
-			//		// Stop Timer
-			//		for (int i = 0; i < clientCount; i++)
-			//		{
-			//			if (ConnectedUsers[i].active)
-			//			{
-			//				PrintPackInfo("READY CONFIRMATION", i, packetData, 20);
-			//				int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-			//				if (sendOK == SOCKET_ERROR) {
-			//					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-			//else
-			//{
-			//	allReady = false;
-			//
-			//	char packetData[DEFAULT_DATA_SIZE];
-			//	int loc = INITIAL_OFFSET;
-			//	int state = (int)GameState::LOBBY;
-			//
-			//	PackData(packetData, &loc, state);
-			//	PackAuxilaryData(packetData, 20, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
-			//
-			//	// Stop Timer
-			//	for (int i = 0; i < clientCount; i++)
-			//	{
-			//		if (ConnectedUsers[i].active)
-			//		{
-			//			PrintPackInfo("UNREADY", i, packetData, 20);
-			//			int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-			//			if (sendOK == SOCKET_ERROR) {
-			//				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			//			}
-			//		}
-			//	}
-			//}
-		}
-		break;
-		case PacketType::STATE:
-		{
-			int state;
-			memcpy(&state, packet + (sizeof(int) * 4), sizeof(state));
-			switch (state)
+			break;
+			case PacketType::TYPE:
 			{
-			case (int)GameState::LOAD:
-				if (!allLoaded)
+				if (ConnectedUsers[sender].ready)
 				{
-					ConnectedUsers[sender].loaded = true;
-					allLoaded = true;
-					StartGame();
+					break;
+				}
 
+				int playerType;
+				memcpy(&playerType, packet + (sizeof(int) * 4), sizeof(playerType));
+				// Check for type and send confirmation - Receive Type, Do check, Send back type or send other type
+				int currentType = (int)ConnectedUsers[sender].type;
+
+				std::cout << "Current Type: " << currentType << ", Requested Type: " << playerType
+					<< "RTS Players: " << rtsPlayers << ", FPS Players: " << fpsPlayers << std::endl;
+				if (currentType == playerType)
+				{
+					ConnectedUsers[sender].type = (PlayerType)OTHER;
+					switch (currentType)
+					{
+					case PlayerType::FPS:
+						--fpsPlayers;
+						break;
+					case PlayerType::RTS:
+						--rtsPlayers;
+						break;
+					}
+				}
+				else
+				{
+					switch (currentType)
+					{
+					case PlayerType::OTHER:
+						if (ChangeType((PlayerType)playerType))
+						{
+							ConnectedUsers[sender].type = (PlayerType)playerType;
+						}
+						break;
+					case PlayerType::RTS:
+						if (ChangeType((PlayerType)playerType))
+						{
+							--rtsPlayers;
+							ConnectedUsers[sender].type = (PlayerType)playerType;
+						}
+						break;
+					case PlayerType::FPS:
+						if (ChangeType((PlayerType)playerType))
+						{
+							--fpsPlayers;
+							ConnectedUsers[sender].type = (PlayerType)playerType;
+						}
+						break;
+					}
+				}
+
+				char packetData[DEFAULT_DATA_SIZE];
+				int loc = INITIAL_OFFSET;
+
+				PackData<int>(packetData, &loc, (int)ConnectedUsers[sender].type);
+				PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::TYPE, sender);
+
+				for (int i = 0; i < clientCount; i++)
+				{
+					if (ConnectedUsers[i].active)
+					{
+						PrintPackInfo("TYPE CONFIRMATION", i, packetData, loc);
+						int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+						if (sendOK == SOCKET_ERROR) {
+							std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+						}
+					}
+				}
+			}
+			break;
+			case PacketType::READY:
+			{
+				bool ready;
+				memcpy(&ready, packet + (sizeof(int) * 4), sizeof(ready));
+				ConnectedUsers[sender].ready = ready;
+				SetReady(ready);
+				//if (ready)
+				//{
+				//	allReady = true;
+				//	// Check all other readys
+				//	for (int i = 0; i < clientCount; i++)
+				//	{
+				//		if (!ConnectedUsers[i].ready)
+				//		{
+				//			allReady = false;
+				//			break;
+				//		}
+				//	}
+				//	if (allReady)
+				//	{
+				//		char packetData[DEFAULT_DATA_SIZE];
+				//		int loc = INITIAL_OFFSET;
+				//		int state = (int)GameState::TIMER;
+				//
+				//		PackData(packetData, &loc, state);
+				//		PackAuxilaryData(packetData, 20, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
+				//
+				//		// Stop Timer
+				//		for (int i = 0; i < clientCount; i++)
+				//		{
+				//			if (ConnectedUsers[i].active)
+				//			{
+				//				PrintPackInfo("READY CONFIRMATION", i, packetData, 20);
+				//				int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+				//				if (sendOK == SOCKET_ERROR) {
+				//					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+				//				}
+				//			}
+				//		}
+				//	}
+				//}
+				//else
+				//{
+				//	allReady = false;
+				//
+				//	char packetData[DEFAULT_DATA_SIZE];
+				//	int loc = INITIAL_OFFSET;
+				//	int state = (int)GameState::LOBBY;
+				//
+				//	PackData(packetData, &loc, state);
+				//	PackAuxilaryData(packetData, 20, ~(int)PlayerMask::SERVER, (int)PacketType::STATE);
+				//
+				//	// Stop Timer
+				//	for (int i = 0; i < clientCount; i++)
+				//	{
+				//		if (ConnectedUsers[i].active)
+				//		{
+				//			PrintPackInfo("UNREADY", i, packetData, 20);
+				//			int sendOK = send(ConnectedUsers[i].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+				//			if (sendOK == SOCKET_ERROR) {
+				//				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+				//			}
+				//		}
+				//	}
+				//}
+			}
+			break;
+			case PacketType::STATE:
+			{
+				int state;
+				memcpy(&state, packet + (sizeof(int) * 4), sizeof(state));
+				switch (state)
+				{
+				case (int)GameState::LOAD:
+					if (!allLoaded)
+					{
+						ConnectedUsers[sender].loaded = true;
+						allLoaded = true;
+						StartGame();
+						break;
+					}
+				case (int)GameState::ENDGAME:
+					if (!gameEnded)
+					{
+						EndGame();
+						gameEnded = true;
+					}
 					break;
 				}
 			}
-		}
-		break;
+			break;
+			}
 		}
 	}
 
@@ -781,11 +831,13 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 		memcpy(&packetType, packet + (sizeof(int) * 2), sizeof(packetType));
 		int index;
 		memcpy(&index, packet + (sizeof(int) * 3), sizeof(index));
-		if (!ConnectedUsers[index].activeUDP)
+		if (index >= 0 && index < ConnectedUsers.size())
 		{
-			acceptNewClient(index, fromAddr, fromLen);
+			if (!ConnectedUsers[index].activeUDP)
+			{
+				acceptNewClient(index, fromAddr, fromLen);
+			}
 		}
-
 		//if (index == (clientCount - 1) && clientCount != 1)
 		//{
 		//	for (int i = 0; i < index; ++i)
@@ -834,230 +886,29 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 void ServerNetwork::SwapIndex(int current, int target)
 {
 	UserProfile tmp = ConnectedUsers[target];
+
+	char packetData[DEFAULT_DATA_SIZE];
+	int loc = INITIAL_OFFSET;
+	PackData<int>(packetData, &loc, target);
+	PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::INIT);
+
+	PrintPackInfo("TCP INIT", -1, packetData, loc);
+	int sendOK = send(ConnectedUsers[current].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+	if (sendOK == SOCKET_ERROR) {
+		std::cout << "Init Send Error: " << WSAGetLastError() << std::endl;
+	}
+
+	char packetData2[DEFAULT_DATA_SIZE];
+	int loc2 = INITIAL_OFFSET;
+	PackData<int>(packetData2, &loc2, current);
+	PackAuxilaryData(packetData2, loc2, ~(int)PlayerMask::SERVER, (int)PacketType::INIT);
+
+	PrintPackInfo("TCP INIT", -1, packetData2, loc2);
+	int sendOK2 = send(ConnectedUsers[target].tcpSocket, packetData2, DEFAULT_DATA_SIZE, 0);
+	if (sendOK2 == SOCKET_ERROR) {
+		std::cout << "Init Send Error: " << WSAGetLastError() << std::endl;
+	}
+
 	ConnectedUsers[target] = ConnectedUsers[current];
 	ConnectedUsers[current] = tmp;
 }
-//
-//void ServerNetwork::sendToAll(Packet pack)
-//{
-//	for (UserProfile client : ConnectedUsers) {
-//		const unsigned int packet_size = sizeof(pack);
-//		char packet_data[packet_size];
-//
-//		pack.serialize(packet_data);
-//
-//		int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&client.udpAddress, client.clientLength);
-//		if (sendOK == SOCKET_ERROR) {
-//			std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-//		}
-//	}
-//}
-//
-////the UDP Send
-//void ServerNetwork::sendTo(Packet pack, int clientID)
-//{
-//	const unsigned int packet_size = sizeof(pack);
-//	char packet_data[packet_size];
-//
-//	pack.serialize(packet_data);
-//
-//	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
-//	if (sendOK == SOCKET_ERROR) {
-//		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-//	}
-//
-//}
-//
-////the TCP Send
-//void ServerNetwork::sendTo(Packet pack, SOCKET client)
-//{
-//	char packet_data[sizeof(pack)];
-//
-//	pack.serialize(packet_data);
-//	int sendOK = send(client, packet_data, sizeof(pack), 0);
-//	if (sendOK == SOCKET_ERROR) {
-//		std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-//	}
-//}
-//
-/*
-//processes all TCP Packets
-void ServerNetwork::ProcessTCP(Packet pack)
-{
-	//std::vector<std::string> parsedData;
-
-	//packet processing 
-	switch (pack.packet_type)
-	{
-	case PacketType::INIT:
-		std::cout << "Data Pipeline Error: INIT Connection not handled correctly";
-		break;
-		//case PacketType::JOIN:
-		//	packet_join join;
-		//	memcpy(&join, &pack.data, sizeof(packet_join));
-		//	if (!join.type)
-		//	{
-		//		if (!rtsExists)
-		//		{
-		//			if (join.playerID != 0)
-		//			{
-		//				SwapIndex(join.playerID, 0);
-		//				join.playerID = 0;
-		//			}
-		//			rtsExists = true;
-		//			sendTo(pack, ConnectedUsers[0].tcpSocket);
-		//		}
-		//		else
-		//		{
-		//			std::cout << "RTS already exists: " << join.playerID << std::endl;
-		//		}
-		//	}
-		//	else if (join.type)
-		//	{
-		//		if (rtsExists)
-		//		{
-		//			if (join.playerID != 0)
-		//			{
-		//				sendTo(pack, ConnectedUsers[0].tcpSocket);
-		//			}
-		//		}
-		//	}
-		//	break;
-		//	//relay the data
-	case PacketType::MESSAGE:
-		//parsedData = Tokenizer::tokenize(',', pack.data);
-		packet_msg msg;
-		memcpy(&msg, &pack.data, sizeof(packet_msg));
-		std::cout << "TCP Message Recieved from user (" + std::to_string(pack.sender) + "):" << std::string(msg.message) << std::endl;
-
-		relay(pack, true);
-		break;
-
-	case PacketType::WEAPON:
-	case PacketType::BUILD:
-	case PacketType::DEATH:
-	case PacketType::STATE:
-		std::cout << "TCP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
-		relay(pack, true);
-		break;
-
-		//send the data to RTS player
-	case PacketType::DAMAGE:
-		packet_damage dmg;
-		memcpy(&dmg, &pack.data, sizeof(packet_damage));
-		if (!dmg.dir)
-		{
-			sendTo(pack, ConnectedUsers[0].tcpSocket);
-			break;
-		}
-		else
-		{
-			//send the data to sepific player
-			//parsedData = Tokenizer::tokenize(',', pack.data);
-			sendTo(pack, ConnectedUsers[dmg.playerID].tcpSocket);
-			break;
-		}
-
-		//case PacketType::PLAYER_DATA:
-		//	std::cout << "Data Protocol Use Invalid: PLAYER_DATA:TCP";
-		//	break;
-	case PacketType::ENTITY:
-		std::cout << "Data Protocol Use Invalid: ENTITY_DATA:TCP";
-		break;
-		//case PacketType::TURRET_DATA:
-		//	std::cout << "Data Protocol Use Invalid: TURRET_DATA:TCP";
-		//	break;
-	default:
-		std::cout << "Error: TCP Unhandled Packet Type: " << pack.packet_type << std::endl;
-		break;
-	}
-}
-
-//processes all UDP Packets
-void ServerNetwork::ProcessUDP(Packet pack)
-{
-	//std::vector<std::string> parsedData;
-
-	switch (pack.packet_type)
-	{
-		//relay the data to all clients
-	case PacketType::MESSAGE:
-		packet_msg msg;
-		memcpy(&msg, &pack.data, sizeof(packet_msg));
-		std::cout << "UDP Message Recieved from user (" + std::to_string(pack.sender) + "):" << std::string(msg.message) << std::endl;
-
-		relay(pack);
-
-		break;
-	case PacketType::ENTITY:
-		//case PacketType::TURRET_DATA:
-		//	// std::cout << "UDP Packet Type: " << pack.packet_type << " , ID: " << pack.id << std::endl;
-		//case PacketType::PLAYER_DATA:
-		relay(pack, false);
-		break;
-
-
-	case PacketType::INIT:
-		std::cout << "Error: Incomming connection packet through invalid TCP channels";
-		break;
-	case PacketType::WEAPON:
-		std::cout << "Data Protocol Use Invalid: WEAPON_DATA:UDP";
-		break;
-	case PacketType::DAMAGE:
-		std::cout << "Data Protocol Use Invalid: DAMAGE_DEALT:UDP";
-		break;
-	case PacketType::BUILD:
-		std::cout << "Data Protocol Use Invalid: BUILD_ENTITY:UDP";
-		break;
-	case PacketType::DEATH:
-		std::cout << "Data Protocol Use Invalid: KILL_ENTITY:UDP";
-		break;
-	case PacketType::STATE:
-		std::cout << "Data Protocol Use Invalid: GAME_STATE:UDP";
-		break;
-		//case PacketType::PLAYER_DAMAGE:
-		//	std::cout << "Data Protocol Use Invalid: PLAYER_DAMAGE:UDP";
-		//	break;
-	default:
-		std::cout << "Error: UDP Unhandled Packet Type:" << pack.packet_type << std::endl;
-		break;
-	}
-}
-
-void ServerNetwork::relay(Packet pack, bool useTCP)
-{
-	for (int counter = 0; counter < ConnectedUsers.size(); counter++) {
-
-		if (counter == pack.sender) {
-			continue;
-		}
-		const unsigned int packet_size = sizeof(pack);
-		char packet_data[packet_size];
-
-		pack.serialize(packet_data);
-
-		if (!useTCP) {
-
-			int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[counter].udpAddress, ConnectedUsers[counter].clientLength);
-			if (sendOK == SOCKET_ERROR) {
-				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			}
-		}
-		else {
-			int sendOK = send(ConnectedUsers[counter].tcpSocket, packet_data, packet_size, 0);
-			if (sendOK == SOCKET_ERROR) {
-				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			}
-		}
-	}
-}
-*/
-//void ServerNetwork::printOut(Packet pack, int clientID)
-//{
-//	std::vector<std::string> parsedData;
-//	parsedData = Tokenizer::tokenize(',', pack.data);
-//
-//	for (int i = 0; i < parsedData.size(); i++) {
-//		std::cout << parsedData[i] << std::endl;
-//	}
-//}

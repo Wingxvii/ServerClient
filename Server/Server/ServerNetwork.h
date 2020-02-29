@@ -49,9 +49,13 @@ public:
 	fd_set master;
 
 	bool listening = true;
+
+	// State checker
 	bool allReady = false;
 	bool gameLoading = false;
 	bool allLoaded = false;
+	bool gameEnded = false;
+
 	int rtsPlayers = 0;
 	int fpsPlayers = 0;
 	int clientCount = 0;
@@ -80,6 +84,8 @@ public:
 	void SetReady(bool readyState);
 
 	void StartGame();
+
+	void EndGame();
 
 	void StartLoading(float timer);
 
