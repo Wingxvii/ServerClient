@@ -67,7 +67,7 @@ extern "C" {
 
 	//recieve packet
 	void (*Message)(int type, int sender, char* data);
-	CNET_H void SetupMessage(void(*action)(int sender, char* data));
+	CNET_H void SetupMessage(void(*action)(int type, int sender, char* data));
 
 	//on connect
 	void (*onConnect)();

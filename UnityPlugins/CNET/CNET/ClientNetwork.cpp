@@ -150,7 +150,7 @@ void ClientNetwork::startUpdates()
 	thread udpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (true) {
+		while (listening) {
 			//recieve messages
 			int length = recvfrom(udp, buf, MAX_PACKET_SIZE, 0, (sockaddr*)&serverUDP, &serverlength);
 			if (length != SOCKET_ERROR) {
@@ -165,7 +165,7 @@ void ClientNetwork::startUpdates()
 	thread tcpUpdate = thread([&]() {
 		char* buf = new char[MAX_PACKET_SIZE];
 
-		while (true) {
+		while (listening) {
 			//recieve packets
 			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
 			if (length != SOCKET_ERROR) {
