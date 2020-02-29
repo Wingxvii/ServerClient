@@ -340,6 +340,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		if (ConnectedUsers[pack.sender].inGame) {
 			for (int index : ActiveGames[ConnectedUsers[pack.sender].gameNumber]) {
 				sendTo(pack, ConnectedUsers[index].tcpSocket);
+				cout << "Message send\n";
 			}
 		}
 		else {
@@ -350,13 +351,13 @@ void ServerNetwork::ProcessTCP(Packet pack)
 	case PacketType::REQUEST_GAME:
 		//send a request game packet to target
 		sendTo(createPacket(REQUEST_GAME, ConnectedUsers[pack.sender].Username, pack.sender), ConnectedUsers[stoi(parsedData[0])].tcpSocket );
-
+		cout << "Request sent\n";
 		break;
 	
 	case PacketType::REQUEST_RESPONSE:
 		//send response to target
 		sendTo(createPacket(REQUEST_RESPONSE, parsedData[1] + "," + ConnectedUsers[stoi(parsedData[0])].Username, pack.sender), ConnectedUsers[stoi(parsedData[0])].tcpSocket);
-		
+		cout << "Response send\n";
 		//enter the requester into a game with the sender
 		if (parsedData[0] == "1") {
 			JoinGame(stoi(parsedData[0]), pack.sender);
@@ -477,7 +478,8 @@ void ServerNetwork::JoinGame(int requester, int responder)
 		vector<int> newGame = { responder, requester };
 		ConnectedUsers[responder].gameNumber = ActiveGames.size();
 		ConnectedUsers[requester].gameNumber = ActiveGames.size();
-
+		ConnectedUsers[requester].inGame = true;
+		ConnectedUsers[responder].inGame = true;
 		//add to game to list
 		ActiveGames.push_back(newGame);
 	}

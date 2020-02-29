@@ -1,0 +1,10 @@
+﻿  main.cpp
+  ClientNetwork.cpp
+C:\Users\Boris\Documents\Repo\Distributed System & Networking\ServerClient\Client\Client\ClientNetwork.cpp(167,21): warning C4244:  '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\Boris\Documents\Repo\Distributed System & Networking\ServerClient\Client\Client\ClientNetwork.cpp(220,20): warning C4244:  '=': conversion from 'float' to 'int', possible loss of data
+  Generating code
+  15 of 229 functions ( 6.6%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    7 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Client.vcxproj -> C:\Users\Boris\Documents\Repo\Distributed System & Networking\ServerClient\Client\x64\Release\Client.dll
