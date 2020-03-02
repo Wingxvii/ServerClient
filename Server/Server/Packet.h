@@ -32,7 +32,9 @@ enum PacketType {
 	// entity built
 	BUILD,
 	// entity killed
-	DEATH
+	DEATH,
+
+	TERMINAL
 };
 
 enum PlayerType {
