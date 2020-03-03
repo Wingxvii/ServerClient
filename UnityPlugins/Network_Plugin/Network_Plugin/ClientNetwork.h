@@ -15,6 +15,14 @@
 #include <fstream>
 #include "Packet.h"
 
+#define PACKET_STAMP 0
+#define PACKET_LENGTH 4
+#define PACKET_RECEIVERS 8
+#define PACKET_TYPE 12
+#define PACKET_SENDER 16
+#define INITIAL_OFFSET 20
+#define OK_STAMP 123456789
+
 class ClientNetwork
 {
 public:

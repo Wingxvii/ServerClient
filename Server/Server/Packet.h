@@ -34,7 +34,9 @@ enum PacketType {
 	// entity killed
 	DEATH,
 
-	TERMINAL
+	TERMINAL,
+
+	FIRING
 };
 
 enum PlayerType {

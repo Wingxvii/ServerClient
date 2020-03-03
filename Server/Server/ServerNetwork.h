@@ -9,8 +9,14 @@
 #include <chrono>
 
 #pragma comment (lib, "ws2_32.lib")
-#define DEFAULT_PORT "6883" 
-#define INITIAL_OFFSET 16
+#define DEFAULT_PORT "55555" 
+#define PACKET_STAMP 0
+#define PACKET_LENGTH 4
+#define PACKET_RECEIVERS 8
+#define PACKET_TYPE 12
+#define PACKET_SENDER 16
+#define INITIAL_OFFSET 20
+#define OK_STAMP 123456789
 
 struct UserProfile {
 	int index;

@@ -232,11 +232,15 @@ void ClientNetwork::startUpdates()
 				int sError = recv(tcp, buff, DEFAULT_DATA_SIZE, 0);
 				if (sError != SOCKET_ERROR) {
 					int pLength = 0;
+					int ok_pack = 0;
+					memcpy(&ok_pack, &buff[0] + PACKET_STAMP, sizeof(ok_pack));
+					if (ok_pack == OK_STAMP)
+					{
+						memcpy(&pLength, &buff[0] + PACKET_LENGTH, sizeof(pLength));
 
-					memcpy(&pLength, &buff[0], sizeof(pLength));
-
-					//PrintPackInfo(-1, buff, pLength);
-					receivePacket(buff, pLength, true);
+						//PrintPackInfo(-1, buff, pLength);
+						receivePacket(buff, pLength, true);
+					}
 				}
 			}
 
@@ -252,11 +256,17 @@ void ClientNetwork::startUpdates()
 			while (listening) {
 				//receive messages
 				int sError = recv(udp, buff, DEFAULT_DATA_SIZE, 0);
+
 				if (sError != SOCKET_ERROR) {
-					int pLength = 0;
-					memcpy(&pLength, &buff[0], sizeof(pLength));
-					//PrintPackInfo(-1, buff, pLength);
-					receivePacket(buff, pLength, false);
+					int ok_pack = 0;
+					memcpy(&ok_pack, &buff[0] + PACKET_STAMP, sizeof(ok_pack));
+					if (ok_pack == OK_STAMP)
+					{
+						int pLength = 0;
+						memcpy(&pLength, &buff[0] + PACKET_LENGTH, sizeof(pLength));
+						//PrintPackInfo(-1, buff, pLength);
+						receivePacket(buff, pLength, false);
+					}
 				}
 			}
 
