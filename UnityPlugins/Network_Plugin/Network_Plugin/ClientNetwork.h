@@ -18,7 +18,6 @@
 class ClientNetwork
 {
 public:
-
 	ClientNetwork();
 	~ClientNetwork();
 
@@ -32,6 +31,7 @@ public:
 
 	bool listening = true;
 	bool init = false;
+	bool consoleOpen = false;
 
 	//client details
 	std::string filePath = "ErrorLog.txt";
@@ -55,6 +55,7 @@ public:
 	std::string GetErrorText();
 
 	//void PrintPackInfo(int sender, char* data, int datalen);
+	void ShowConsole(bool open);
 
 	void UpdateFile();
 	void ClearFile();
@@ -79,6 +80,7 @@ extern "C" {
 	NETWORK_H void SendDebugOutput(char* data);
 	NETWORK_H int GetError(ClientNetwork* client);
 	NETWORK_H int GetErrorLoc(ClientNetwork* client);
+	NETWORK_H void ShowConsole(ClientNetwork* client, bool open);
 	NETWORK_H void UpdateFile(ClientNetwork* client);
 	NETWORK_H void ClearFile(ClientNetwork* client);
 	NETWORK_H void Reset(ClientNetwork* client);

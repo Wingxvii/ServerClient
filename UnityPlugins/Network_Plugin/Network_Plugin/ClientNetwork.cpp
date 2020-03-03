@@ -45,6 +45,11 @@ NETWORK_H int GetErrorLoc(ClientNetwork* client)
 	return client->GetErrorLoc();
 }
 
+NETWORK_H void ShowConsole(ClientNetwork* client, bool open)
+{
+	client->ShowConsole(open);
+}
+
 NETWORK_H void UpdateFile(ClientNetwork* client)
 {
 	client->UpdateFile();
@@ -95,10 +100,6 @@ ClientNetwork::ClientNetwork()
 	//udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
 
 	ClearFile();
-
-	FILE* pConsole;
-	AllocConsole();
-	freopen_s(&pConsole, "CONOUT$", "wb", stdout);
 }
 
 ClientNetwork::~ClientNetwork()
@@ -107,7 +108,7 @@ ClientNetwork::~ClientNetwork()
 	closesocket(tcp);
 	closesocket(udp);
 	WSACleanup();
-	FreeConsole();
+	ShowConsole(false);
 }
 
 bool ClientNetwork::connectToServer(std::string ip)
@@ -118,7 +119,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 	}
 
 	std::cout << "ConnectingTCP..." << std::endl;
-	if (getaddrinfo(serverIP.c_str(), "5000", &hintsTCP, &ptrTCP) != 0)
+	if (getaddrinfo(serverIP.c_str(), "55555", &hintsTCP, &ptrTCP) != 0)
 	{
 		//std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
@@ -157,7 +158,7 @@ bool ClientNetwork::connectToServer(std::string ip)
 
 
 	std::cout << "ConnectingUDP..." << std::endl;
-	if (getaddrinfo(serverIP.c_str(), "5001", &hintsUDP, &ptrUDP) != 0)
+	if (getaddrinfo(serverIP.c_str(), "60000", &hintsUDP, &ptrUDP) != 0)
 	{
 		error = WSAGetLastError();
 		errorLoc = 3;
@@ -182,48 +183,6 @@ bool ClientNetwork::connectToServer(std::string ip)
 	init = true;
 	return true;
 }
-//
-//bool ClientNetwork::sendData(int packetType, char* data, size_t size, bool useTCP)
-//{
-//	if (init)
-//	{
-//		//create packet
-//		Packet packet;
-//		memcpy(packet.data, &data, size);
-//		packet.packet_type = packetType;
-//		packet.sender = index;
-//
-//		//set size
-//		const unsigned int packet_size = sizeof(packet);
-//		char packet_data[packet_size];
-//
-//		//seralize
-//		packet.serialize(packet_data);
-//		//udp send
-//		if (!useTCP) {
-//			if (sendto(udp, packet_data, packet_size, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
-//				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-//				error = WSAGetLastError();
-//				errorLoc = 6;
-//				UpdateFile();
-//				return false;
-//			}
-//		}
-//		//tcp send
-//		else {
-//			if (send(tcp, packet_data, packet_size, 0) == SOCKET_ERROR)
-//			{
-//				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-//				error = WSAGetLastError();
-//				errorLoc = 7;
-//				UpdateFile();
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
-//	return false;
-//}
 
 bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 {
@@ -298,169 +257,6 @@ void ClientNetwork::startUpdates()
 		});
 	udpUpdate.detach();
 }
-/*
-void ClientNetwork::startUpdates()
-{
-	if (init)
-	{
-		//multithread
-		std::thread udpUpdate = std::thread([&]()
-			{
-				char* buf = new char[MAX_PACKET_SIZE];
-
-				while (listening) {
-					//receive messages
-					int length = recv(udp, buf, MAX_PACKET_SIZE, 0);
-					if (length != SOCKET_ERROR) {
-						Packet packet;
-						packet.deserialize(buf);
-						if (packet.packet_type == INIT) {
-							packet_init init;
-							memcpy(&init, &packet.data, sizeof(packet_init));
-							//std::cout << "UDP Packet INIT ERROR@@@: " << init.index << std::endl;
-						}
-						else if (packet.packet_type == JOIN) {
-							packet_join join;
-							memcpy(&join, &packet.data, sizeof(packet_join));
-							// index = join.playerID;
-							//std::cout << "UDP Packet JOIN ERROR@@@: " << join.playerID << std::endl;
-						}
-						else {
-							switch (packet.packet_type)
-							{
-							case PacketType::MESSAGE:
-								packet_msg msg;
-								memcpy(&msg, &packet.data, sizeof(packet_msg));
-								receivePacketMsg(packet.sender, msg);
-								break;
-							case PacketType::STATE:
-								packet_state state;
-								memcpy(&state, &packet.data, sizeof(packet_state));
-								receivePacketState(packet.sender, state);
-								break;
-							case PacketType::ENTITY:
-								packet_entity entity;
-								memcpy(&entity, &packet.data, sizeof(packet_entity));
-								receivePacketEntity(packet.sender, entity);
-								break;
-							case PacketType::DAMAGE:
-								packet_damage dmg;
-								memcpy(&dmg, &packet.data, sizeof(packet_damage));
-								receivePacketDamage(packet.sender, dmg);
-								break;
-							case PacketType::WEAPON:
-								packet_weapon weapon;
-								memcpy(&weapon, &packet.data, sizeof(packet_weapon));
-								receivePacketWeapon(packet.sender, weapon);
-								break;
-							case PacketType::BUILD:
-								packet_build build;
-								memcpy(&build, &packet.data, sizeof(packet_build));
-								receivePacketBuild(packet.sender, build);
-								break;
-							case PacketType::DEATH:
-								packet_kill kill;
-								memcpy(&kill, &packet.data, sizeof(packet_kill));
-								receivePacketKill(packet.sender, kill);
-								break;
-							default:
-								errorLoc = 100;
-								errorText = "Invalid Packet Type: " + packet.packet_type;
-								break;
-							}
-							// receivePacket(packet.packet_type, packet.sender, packet.data);
-						}
-					}
-				}
-			});
-		udpUpdate.detach();
-
-		std::thread tcpUpdate = std::thread([&]()
-			{
-				char* buf = new char[MAX_PACKET_SIZE];
-
-				while (listening) {
-					//receive packets
-					int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
-					if (length != SOCKET_ERROR) {
-						Packet packet;
-						packet.deserialize(buf);
-						if (packet.packet_type == INIT) {
-							if (packet.sender == -1)
-							{
-								packet_init init;
-								memcpy(&init, &packet.data, sizeof(packet_init));
-								index = init.index;
-
-								sendData(INIT, (char*)&init, sizeof(packet_init), false);
-							}
-							else
-							{
-								errorLoc = 11;
-								errorText = "PACKET INIT Not from Server : " + std::to_string(packet.sender);
-								UpdateFile();
-							}
-						}
-						else if (packet.packet_type == JOIN)
-						{
-							packet_join join;
-							memcpy(&join, &packet.data, sizeof(packet_join));
-							index = join.playerID;
-						}
-						else {
-							switch (packet.packet_type)
-							{
-							case PacketType::MESSAGE:
-								packet_msg msg;
-								memcpy(&msg, &packet.data, sizeof(packet_msg));
-								receivePacketMsg(packet.sender, msg);
-								break;
-							case PacketType::STATE:
-								packet_state state;
-								memcpy(&state, &packet.data, sizeof(packet_state));
-								receivePacketState(packet.sender, state);
-								break;
-							case PacketType::ENTITY:
-								packet_entity entity;
-								memcpy(&entity, &packet.data, sizeof(packet_entity));
-								receivePacketEntity(packet.sender, entity);
-								break;
-							case PacketType::DAMAGE:
-								packet_damage dmg;
-								memcpy(&dmg, &packet.data, sizeof(packet_damage));
-								receivePacketDamage(packet.sender, dmg);
-								break;
-							case PacketType::WEAPON:
-								packet_weapon weapon;
-								memcpy(&weapon, &packet.data, sizeof(packet_weapon));
-								receivePacketWeapon(packet.sender, weapon);
-								break;
-							case PacketType::BUILD:
-								packet_build build;
-								memcpy(&build, &packet.data, sizeof(packet_build));
-								receivePacketBuild(packet.sender, build);
-								break;
-							case PacketType::DEATH:
-								packet_kill kill;
-								memcpy(&kill, &packet.data, sizeof(packet_kill));
-								receivePacketKill(packet.sender, kill);
-								break;
-							default:
-								errorLoc = 100;
-								errorText = "Invalid Packet Type: " + packet.packet_type;
-								break;
-							}
-
-							// receivePacket(packet.packet_type, packet.sender, packet.data); // old
-						}
-					}
-				}
-
-			});
-		tcpUpdate.detach();
-	}
-}
-*/
 
 int ClientNetwork::GetError()
 {
@@ -475,6 +271,22 @@ int ClientNetwork::GetErrorLoc()
 std::string ClientNetwork::GetErrorText()
 {
 	return errorText;
+}
+
+void ClientNetwork::ShowConsole(bool open)
+{
+	if (open && !consoleOpen)
+	{
+		FILE* pConsole;
+		AllocConsole();
+		freopen_s(&pConsole, "CONOUT$", "wb", stdout);
+		consoleOpen = true;
+	}
+	else if (!open && consoleOpen)
+	{
+		FreeConsole();
+		consoleOpen = false;
+	}
 }
 
 void ClientNetwork::UpdateFile()
@@ -508,7 +320,7 @@ void ClientNetwork::Reset()
 
 }
 
-
+// Printing Packet Data
 //void ClientNetwork::PrintPackInfo(int sender, char* data, int dataLen)
 //{
 //	std::cout << "Sender: " << sender << ", " << dataLen << ", Data: ";

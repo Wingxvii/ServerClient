@@ -18,7 +18,7 @@ ServerNetwork::ServerNetwork()
 	//socket setup
 	serverTCP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(5000);
+	serverTCP.sin_port = htons(55555);
 	tcp = socket(serverTCP.sin_family, SOCK_STREAM, IPPROTO_TCP);
 	if (tcp == INVALID_SOCKET)
 	{
@@ -38,7 +38,7 @@ ServerNetwork::ServerNetwork()
 	//socket setup
 	serverUDP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverUDP.sin_family = AF_INET;
-	serverUDP.sin_port = htons(5001);
+	serverUDP.sin_port = htons(60000);
 	udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
 	if (udp == INVALID_SOCKET)
 	{
