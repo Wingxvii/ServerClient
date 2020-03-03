@@ -15,10 +15,12 @@
 struct UserProfile {
 	int index;
 	std::string Username;
-	sockaddr_in udpAddress;
 	SOCKET tcpSocket;
+	sockaddr_in tcpAddress;
+	int tcpLength;
+	sockaddr_in udpAddress;
 	std::string clientIP;
-	int clientLength;
+	int udpLength;
 
 	PlayerType type;
 	bool ready;
@@ -35,6 +37,7 @@ class ServerNetwork
 public:
 	ServerNetwork();
 	~ServerNetwork();
+
 
 	//UDP Socket
 	SOCKET udp;
@@ -59,6 +62,7 @@ public:
 	int rtsPlayers = 0;
 	int fpsPlayers = 0;
 	int clientCount = 0;
+	int clientLimit = 4;
 
 	float timeOut = 0.f;
 
@@ -77,6 +81,7 @@ public:
 public:
 	//initalize the entity game data
 	//void initEntities();
+	void acceptTCPConnection();
 
 	//accept and save new socket
 	void acceptNewClient(int sender, sockaddr_in address, int length);

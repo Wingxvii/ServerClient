@@ -75,6 +75,70 @@ ServerNetwork::~ServerNetwork()
 	WSACleanup();
 }
 
+void ServerNetwork::acceptTCPConnection()
+{
+	std::cout << "TCP Connection" << std::endl;
+
+	sockaddr_in tmpAddress;
+	int tmpLen = sizeof(tmpAddress);
+
+	// Accept a new connection
+	SOCKET client = accept(tcp, (struct sockaddr*)&tmpAddress, &tmpLen);
+	std::cout << "Client TCP Attempt: " << client << std::endl;
+
+	bool isExist = false;
+	for (int i = 0; i < clientCount; i++)
+	{
+		if (ConnectedUsers[i].tcpAddress.sin_addr.S_un.S_addr == tmpAddress.sin_addr.S_un.S_addr)
+		{
+			isExist = true;
+			std::cout << "Socket Exists: " << i << std::endl;
+		}
+	}
+
+	if (!isExist && clientCount <= clientLimit)
+	{
+		SetReady(false);
+		
+		//create new profile
+		UserProfile newProfile = UserProfile();
+		newProfile.tcpSocket = client;
+		newProfile.tcpAddress = tmpAddress;
+		newProfile.tcpLength = tmpLen;
+
+		if (clientCount < 9) {
+			newProfile.index = clientCount;
+			clientCount++;
+		}
+
+		// Add the new connection to the list of connected clients
+		FD_SET(client, &master);
+		ConnectedUsers.push_back(newProfile);
+
+		char packetData[DEFAULT_DATA_SIZE];
+		int loc = INITIAL_OFFSET;
+		std::cout << newProfile.index << std::endl;
+		PackData<int>(packetData, &loc, newProfile.index);
+		PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::INIT);
+
+		PrintPackInfo("TCP INIT", -1, packetData, loc);
+		int sendOK = send(newProfile.tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
+		if (sendOK == SOCKET_ERROR) {
+			std::cout << "Init Send Error: " << WSAGetLastError() << std::endl;
+		}
+		else
+		{
+			ConnectedUsers[newProfile.index].active = true;
+			std::cout << "TCP Client " << newProfile.index << " has connected." << std::endl;
+		}
+	}
+	else
+	{
+		std::cout << "User Already Exists" << std::endl;
+		closesocket(client);
+	}
+}
+
 void ServerNetwork::acceptNewClient(int sender, sockaddr_in address, int length)
 {
 	//processing must be done here
@@ -82,7 +146,7 @@ void ServerNetwork::acceptNewClient(int sender, sockaddr_in address, int length)
 		if (address.sin_addr.S_un.S_addr != ConnectedUsers[sender].udpAddress.sin_addr.S_un.S_addr)
 		{
 			ConnectedUsers[sender].udpAddress = address;
-			ConnectedUsers[sender].clientLength = length;
+			ConnectedUsers[sender].udpLength = length;
 
 			//char str[INET6_ADDRSTRLEN];
 			//
@@ -115,7 +179,7 @@ void ServerNetwork::SetReady(bool readyState)
 				break;
 			}
 		}
-		if (allReady)
+		if (allReady && rtsPlayers == 1)
 		{
 			char packetData[DEFAULT_DATA_SIZE];
 			int loc = INITIAL_OFFSET;
@@ -280,28 +344,6 @@ void ServerNetwork::SocketListening(SOCKET sock)
 		}
 		else {
 			packetUDP(buf, fromAddr, fromLen);
-			//deseralize socket data into packet
-			//Packet packet;
-			//packet.deserialize(buf);
-			//std::cout << "Received UDP Packet: " << packet.packet_type << std::endl;
-			//process connection packet
-			//if (packet.packet_type == PacketType::INIT) {
-			//	std::cout << "UDP Connection" << std::endl;
-			//	//std::vector<std::string> parsedData;
-			//	////tokenize
-			//	//parsedData = Tokenizer::tokenize(',', packet.data);
-			//	//parsedData.insert(parsedData.begin(), std::to_string(packet.sender));
-			//	packet_init init;
-			//	memcpy(&init, &packet.data, sizeof(packet_init));
-			//
-			//	acceptNewClient(init.index, fromAddr, fromLen);
-			//	break;
-			//}
-			//else {
-			//	//process if not connection
-			//	//ProcessUDP(packet);
-			//	
-			//}
 		}
 
 		delete[] buf;
@@ -310,42 +352,7 @@ void ServerNetwork::SocketListening(SOCKET sock)
 	{
 		if (!gameLoading)
 		{
-			std::cout << "TCP Connection" << std::endl;
-
-			SetReady(false);
-
-			// Accept a new connection
-			SOCKET client = accept(tcp, nullptr, nullptr);
-
-			//create new profile
-			UserProfile newProfile = UserProfile();
-			newProfile.tcpSocket = client;
-
-			if (clientCount < 99) {
-				newProfile.index = clientCount;
-				clientCount++;
-			}
-
-			// Add the new connection to the list of connected clients
-			FD_SET(client, &master);
-			ConnectedUsers.push_back(newProfile);
-
-			char packetData[DEFAULT_DATA_SIZE];
-			int loc = INITIAL_OFFSET;
-			std::cout << newProfile.index << std::endl;
-			PackData<int>(packetData, &loc, newProfile.index);
-			PackAuxilaryData(packetData, loc, ~(int)PlayerMask::SERVER, (int)PacketType::INIT);
-
-			PrintPackInfo("TCP INIT", -1, packetData, loc);
-			int sendOK = send(newProfile.tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-			if (sendOK == SOCKET_ERROR) {
-				std::cout << "Init Send Error: " << WSAGetLastError() << std::endl;
-			}
-			else
-			{
-				ConnectedUsers[newProfile.index].active = true;
-				std::cout << "TCP Client " << newProfile.index << " has connected." << std::endl;
-			}
+			acceptTCPConnection();
 		}
 	}
 	//TCP Input Sockets
@@ -374,9 +381,6 @@ void ServerNetwork::SocketListening(SOCKET sock)
 		}
 		else {
 			//process packet data
-			//Packet packet;
-			//packet.deserialize(buf);
-			//ProcessTCP(packet);
 			packetTCP(buf);
 		}
 
@@ -874,7 +878,7 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 				int length;
 				memcpy(&length, packet, 4);
 				//PrintPackInfo("RELAY UDP", i, packet, length);
-				int sendOK = sendto(udp, packet, DEFAULT_DATA_SIZE, 0, (sockaddr*)&ConnectedUsers[i].udpAddress, ConnectedUsers[i].clientLength);
+				int sendOK = sendto(udp, packet, DEFAULT_DATA_SIZE, 0, (sockaddr*)&ConnectedUsers[i].udpAddress, ConnectedUsers[i].udpLength);
 				if (sendOK == SOCKET_ERROR) {
 					std::cout << "Send Error: " << WSAGetLastError() << std::endl;
 				}

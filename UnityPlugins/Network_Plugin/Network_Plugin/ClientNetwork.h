@@ -31,6 +31,7 @@ public:
 
 	bool listening = true;
 	bool init = false;
+	bool socketInit = false;
 	bool consoleOpen = false;
 
 	//client details

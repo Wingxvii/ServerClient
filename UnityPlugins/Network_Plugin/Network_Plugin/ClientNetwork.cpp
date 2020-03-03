@@ -113,6 +113,10 @@ ClientNetwork::~ClientNetwork()
 
 bool ClientNetwork::connectToServer(std::string ip)
 {	
+	if (socketInit) {
+		return true;
+	}
+
 	if (ip != "")
 	{
 		serverIP = ip;
@@ -154,8 +158,11 @@ bool ClientNetwork::connectToServer(std::string ip)
 
 		return false;
 	}
+	else
+	{
+		socketInit = true;
+	}
 	std::cout << "TCP Connected!" << std::endl;
-
 
 	std::cout << "ConnectingUDP..." << std::endl;
 	if (getaddrinfo(serverIP.c_str(), "60000", &hintsUDP, &ptrUDP) != 0)
