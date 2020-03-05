@@ -11,10 +11,17 @@
 
 enum PacketType {
 	//initialization connection
-	INIT_CONNECTION = 0,
+	INIT_CONNECTION,
 	//single string
-	MESSAGE = 1,
-
+	MESSAGE,
+	//player's position udp
+	PLAYER_POSITION,
+	//puck position for non-physics player udp
+	PUCK_POSITIONS,
+	//puck impulse for physics player tcp
+	PUCK_IMPULSE,
+	//info about game win and loss tcp
+	GAMEWIN,
 
 };
 

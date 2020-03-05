@@ -322,6 +322,17 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		relay(pack, true);
 
 		break;
+	case PacketType::PUCK_IMPULSE:
+		cout << "Puck Impulse recieved from player " << pack.sender << endl;
+		relay(pack, true);
+
+		break;
+	case PacketType::GAMEWIN:
+		cout << "Game Win recieved from player " << pack.sender << endl;
+		relay(pack, true);
+
+		break;
+
 	default:
 		cout << "Error: Unhandled Packet Type";
 		break;
@@ -344,6 +355,15 @@ void ServerNetwork::ProcessUDP(Packet pack)
 		relay(pack);
 
 		break;
+	case PacketType::PLAYER_POSITION:
+		relay(pack, true);
+
+		break;
+	case PacketType::PUCK_POSITIONS:
+		relay(pack, true);
+
+		break;
+
 	default:
 		cout << "Error: Unhandled Packet Type";
 		break;
