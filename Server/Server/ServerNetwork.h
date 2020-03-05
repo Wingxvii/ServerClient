@@ -14,7 +14,6 @@ using namespace std;
 
 struct UserProfile {
 	int index;
-	string Username;
 	sockaddr_in udpAddress;
 	SOCKET tcpSocket;
 	string clientIP;

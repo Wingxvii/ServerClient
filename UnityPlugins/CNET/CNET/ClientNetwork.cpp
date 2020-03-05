@@ -36,6 +36,11 @@ CNET_H int GetPlayerNumber(ClientNetwork* client)
 	return client->index;
 }
 
+CNET_H void SetupOnConnect(void(*action)())
+{
+	onConnect = action;
+}
+
 
 ClientNetwork::ClientNetwork()
 {
@@ -154,6 +159,7 @@ void ClientNetwork::startUpdates()
 					parsedData = tokenize(',', packet.data);
 
 					index = std::stof(parsedData[0]);
+					onConnect();
 				}
 				else {
 					recievePacket(packet.packet_type, packet.sender, packet.data);

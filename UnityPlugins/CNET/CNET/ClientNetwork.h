@@ -52,25 +52,26 @@ public:
 	void startUpdates();
 	int sendData(int packetType, string message, bool useTCP = false);	//udp send data
 
-	//tokenizes into string vects
+	//tokenizeas into string vects
 	static std::vector<std::string> tokenize(char token, std::string text);
 
 };
 
 extern "C" {
 	//message action
-	void (*recievePacket)(int type, int sender, char* data);
 
 	CNET_H ClientNetwork* CreateClient();
 	CNET_H void DeleteClient(ClientNetwork* client);
 	CNET_H void Connect(char* ip, ClientNetwork* client);
 	CNET_H void StartUpdating(ClientNetwork* client);
-	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
-
 	CNET_H void SendData(int type, char* message, bool useTCP, ClientNetwork* client);
-
-
 	CNET_H int GetPlayerNumber(ClientNetwork* client);
 
 
+	void (*recievePacket)(int type, int sender, char* data);
+	CNET_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
+
+	//on connect
+	void (*onConnect)();
+	CNET_H void SetupOnConnect(void(*action)());
 }
