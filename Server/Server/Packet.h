@@ -9,12 +9,15 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
-enum PacketType {
+enum PacketType
+{
 	// initialization connection
 	INIT = 0,
-	USER,	
+	USER,
+	// Ready
 	TYPE,
 	READY,
+	// LOADED, // Game State = game loaded
 	// single string
 	MESSAGE,
 	// game state
@@ -36,7 +39,9 @@ enum PacketType {
 
 	TERMINAL,
 
-	FIRING
+	FIRING,
+
+	TURRETFIRE
 };
 
 enum PlayerType {
