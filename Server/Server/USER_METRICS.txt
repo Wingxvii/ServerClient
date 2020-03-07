@@ -1,0 +1,12 @@
+Game Stats:
+Building type 0 built: 0
+Building type 1 built: 0
+Building type 2 built: 0
+Building type 3 built: 0
+Building type 4 built: 0
+Building type 5 built: 0
+Building type 6 built: 0
+Building type 7 built: 0
+Player 1 died 0 times
+Player 2 died 0 times
+Player 3 died 0 times

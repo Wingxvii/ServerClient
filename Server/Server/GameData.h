@@ -42,13 +42,18 @@ struct Vector3
 	}
 };
 
-enum EntityType {
+enum EntityType
+{
 	None,
-	Player,
+	Wall,
+	Barracks,
 	Droid,
 	Turret,
-	Building,
+	Player,
+	Dummy,
+	Science,
 
+	TOTAL,
 };
 
 struct Entity_Data {

@@ -7,6 +7,7 @@
 #include "Tokenizer.h"
 #include "GameData.h"
 #include <chrono>
+#include <fstream>
 
 #pragma comment (lib, "ws2_32.lib")
 #define DEFAULT_PORT "55555" 
@@ -37,6 +38,22 @@ struct UserProfile {
 	bool activeUDP = false;
 };
 
+class GameData
+{
+public:
+	GameData();
+	~GameData();
+
+	void reset();
+
+	int* built;
+	int* died;
+
+	std::string MetricsFile = "USER_METRICS.txt";
+
+	bool alreadyCompleted = false;
+};
+
 #pragma once
 class ServerNetwork
 {
@@ -44,6 +61,7 @@ public:
 	ServerNetwork();
 	~ServerNetwork();
 
+	GameData gd;
 
 	//UDP Socket
 	SOCKET udp;
@@ -126,6 +144,8 @@ public:
 	void UnpackData(char* buffer, int* loc, T* data);
 
 	void UnpackString(char* buffer, int* loc, std::string* str, int *length);
+
+	void UpdateMetrics(bool ignoreCompletion);
 	////send to all clients
 	//void sendToAll(Packet pack);
 	////send to sepific client(udp) (should not be used)

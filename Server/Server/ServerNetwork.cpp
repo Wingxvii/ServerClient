@@ -63,11 +63,14 @@ ServerNetwork::ServerNetwork()
 
 	//initalization
 	ConnectedUsers = std::vector<UserProfile>();
+
+	//UpdateMetrics(false);
 	//packetsIn = std::vector<Packet>();
 }
 
 ServerNetwork::~ServerNetwork()
 {
+	UpdateMetrics(false);
 	listening = false;
 	FD_CLR(tcp, &master);
 	closesocket(tcp);
@@ -532,6 +535,32 @@ void ServerNetwork::UnpackString(char* buffer, int* loc, std::string* str, int* 
 	*loc += *length;
 }
 
+void ServerNetwork::UpdateMetrics(bool ignoreCompletion)
+{
+	if (!gd.alreadyCompleted || ignoreCompletion)
+	{
+		std::ofstream mFile;
+		mFile.open(gd.MetricsFile);
+
+		mFile << "Game Stats:\n";
+
+		for (int i = 0; i < EntityType::TOTAL; ++i)
+		{
+			mFile << "Building type " << i << " built: " << gd.built[i] << "\n";
+		}
+
+		for (int i = 0; i < 3; ++i)
+		{
+			mFile << "Player " << (i + 1) << " died " << gd.died[i] << " times\n";
+		}
+
+		gd.reset();
+		gd.alreadyCompleted = true;
+
+		mFile.close();
+	}
+}
+
 void ServerNetwork::PackAuxilaryData(char* buffer, int length, int receiver, int type, int sender)
 {
 	int loc = 0;
@@ -786,6 +815,23 @@ void ServerNetwork::packetTCP(char* packet)
 					//}
 				}
 				break;
+				case PacketType::BUILD:
+				{
+					int type;
+					memcpy(&type, packet + (sizeof(int) * 6), sizeof(type));
+
+					gd.built[type]++;
+				}
+				break;
+				case PacketType::DEATH:
+				{
+					int id;
+					memcpy(&id, packet + (sizeof(int) * 5), sizeof(id));
+
+					if (id >= 1 && id <= 3)
+						gd.died[id - 1]--;
+				}
+				break;
 				case PacketType::STATE:
 				{
 					int state;
@@ -803,6 +849,8 @@ void ServerNetwork::packetTCP(char* packet)
 					case (int)GameState::ENDGAME:
 						if (!gameEnded)
 						{
+							UpdateMetrics(true);
+
 							EndGame();
 							gameEnded = true;
 						}
@@ -942,4 +990,30 @@ void ServerNetwork::SwapIndex(int current, int target)
 
 	ConnectedUsers[target] = ConnectedUsers[current];
 	ConnectedUsers[current] = tmp;
+}
+
+GameData::GameData()
+{
+	built = new int[EntityType::TOTAL];
+	died = new int[3];
+
+	reset();
+}
+
+GameData::~GameData()
+{
+	delete[] built;
+	delete[] died;
+}
+
+void GameData::reset()
+{
+	for (int i = 0; i < EntityType::TOTAL; ++i)
+	{
+		built[i] = 0;
+	}
+
+	died[0] = 0;
+	died[1] = 0;
+	died[2] = 0;
 }
