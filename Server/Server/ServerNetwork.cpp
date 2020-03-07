@@ -1,5 +1,7 @@
 #include "ServerNetwork.h"
 
+UserMetrics* UserMetrics::instance = 0;
+
 ServerNetwork::ServerNetwork()
 {
 	previousTime = std::chrono::system_clock::now();
@@ -242,6 +244,7 @@ void ServerNetwork::StartLoading(float timer)
 					SwapIndex(0, i);
 				}
 			}
+			UserMetrics::getInstance()->initialize(ConnectedUsers);
 		}
 		else
 		{
@@ -804,12 +807,31 @@ void ServerNetwork::packetTCP(char* packet)
 						if (!gameEnded)
 						{
 							EndGame();
+							UserMetrics::getInstance()->writeToFile();
 							gameEnded = true;
 						}
 						break;
 					}
 				}
 				break;
+				case PacketType::DAMAGE:
+				{
+					Damage tmp;
+					tmp.attacker_type = sender;
+					tmp.location;
+				}
+				break;
+				case PacketType::BUILD:
+				{
+					Buildings tmp;
+				}
+				case PacketType::DEATH:
+				{
+					Death tmp;
+				}
+				break;
+				default:
+					break;
 				}
 			}
 		}
@@ -942,4 +964,136 @@ void ServerNetwork::SwapIndex(int current, int target)
 
 	ConnectedUsers[target] = ConnectedUsers[current];
 	ConnectedUsers[current] = tmp;
+}
+
+void UserMetrics::initialize(std::vector<UserProfile> connected_users)
+{
+	if (!init)
+	{
+		for (int i = 0; i < MAX_SAVE_FILES; i++)
+		{
+			if (FILE* file = fopen((file_name + std::to_string(i) + file_type).c_str(), "r"))
+			{
+				fclose(file);
+			}
+			else
+			{
+				session_id = i;
+				current_file_path = file_name + std::to_string(i) + file_type;
+				break;
+			}
+		}
+
+		for (const auto& user : connected_users)
+		{
+			PlayerData tmp;
+			tmp.player_name = user.Username;
+			tmp.player_type = user.type;
+			tmp.alive_timer = 0.0f;
+			player_list.push_back(std::make_shared<PlayerData>(tmp));
+		}
+
+		init = true;
+	}
+}
+
+void UserMetrics::recordDamage(int id, Damage dmg)
+{
+	player_list[id]->damages.push_back(dmg);
+	player_list[id]->total_damage_dealt += dmg.damage;
+}
+
+void UserMetrics::recordDeath(int id, Death death)
+{
+	player_list[id]->deaths.push_back(death);
+}
+
+void UserMetrics::recordKill(int id, int target_type)
+{
+	player_list[id]->total_kills++;
+	player_list[id]->kill_target_types.push_back(target_type);
+}
+
+void UserMetrics::recordBuild(int id, Buildings building)
+{
+	player_list[id]->buildings.push_back(building);
+}
+
+void UserMetrics::recordEarning(int id, Transaction trans)
+{
+	player_list[id]->credit_earned.push_back(trans);
+	player_list[id]->total_credits_earned += trans.amount;
+}
+
+void UserMetrics::recordSpending(int id, Transaction trans)
+{
+	player_list[id]->credit_spent.push_back(trans);
+	player_list[id]->total_credits_spent += trans.amount;
+}
+
+void UserMetrics::writeToFile()
+{
+	std::ofstream save_file;
+	save_file.open(current_file_path, std::fstream::out);
+
+	for (const auto& player : player_list)
+	{
+		save_file << "Player Name: " << player->player_name << std::endl;
+		save_file << "Player Type: " << player->player_type << std::endl;
+		save_file << "Total Damage Dealt: " << player->total_damage_dealt << std::endl;
+		save_file << "Total Kills: " << player->total_kills << std::endl;
+		save_file << "Total Credits Earned: " << player->total_credits_earned << std::endl;
+		save_file << "Total Credits Spent: " << player->total_damage_dealt << std::endl;
+		if (player->player_type == PlayerType::RTS)
+		{
+			save_file << "Total Turrets: " << player->total_turrets << std::endl;
+			save_file << "Total Barracks: " << player->total_barracks << std::endl;
+			save_file << "Total Droids: " << player->total_droids << std::endl;
+			for (const auto& building : player->buildings)
+			{
+				save_file << "Building " <<
+					building.type << " built at " <<
+					building.build_locations.x << ", " <<
+					building.build_locations.y << ", " <<
+					building.build_locations.z << std::endl;
+			}
+		}
+		else if (player->player_type == PlayerType::FPS)
+		{
+			for (const auto& death : player->deaths)
+			{
+				save_file << "After " <<
+					death.alive_timer << "secs, Killed by " <<
+					death.killer_type << " at " <<
+					death.death_loc.x << ", " <<
+					death.death_loc.y << ", " <<
+					death.death_loc.z << std::endl;
+			}
+			for (const auto& damage : player->damages)
+			{
+				save_file << "Damaged by " <<
+					damage.attacker_type << " at " <<
+					damage.location.x << ", " <<
+					damage.location.y << ", " <<
+					damage.location.z << std::endl;
+			}
+			for (const auto& loc : player->location_tracking)
+			{
+				save_file << "Loc: " <<
+					loc.x << ", " <<
+					loc.y << ", " <<
+					loc.z << std::endl;
+			}
+		}
+		for (const auto& earn : player->credit_earned)
+		{
+			save_file << "Earned " << earn.amount << " from " << earn.target << std::endl;
+		}
+		for (const auto& spent : player->credit_spent)
+		{
+			save_file << "Spent " << spent.amount << " on " << spent.target << std::endl;
+		}
+	}
+
+	save_file.close();
 }

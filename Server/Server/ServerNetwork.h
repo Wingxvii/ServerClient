@@ -1,3 +1,4 @@
+#pragma once
 #include <ws2tcpip.h>
 #include <string>
 #include <iostream>
@@ -7,6 +8,8 @@
 #include "Tokenizer.h"
 #include "GameData.h"
 #include <chrono>
+#include <fstream>
+
 
 #pragma comment (lib, "ws2_32.lib")
 #define DEFAULT_PORT "55555" 
@@ -17,6 +20,7 @@
 #define PACKET_SENDER 16
 #define INITIAL_OFFSET 20
 #define OK_STAMP 123456789
+#define MAX_SAVE_FILES 99
 
 struct UserProfile {
 	int index;
@@ -37,7 +41,6 @@ struct UserProfile {
 	bool activeUDP = false;
 };
 
-#pragma once
 class ServerNetwork
 {
 public:
@@ -153,3 +156,99 @@ inline void ServerNetwork::UnpackData(char* buffer, int* loc, T* data)
 	memcpy(data, buffer + *loc, sizeof(T));
 	*loc += sizeof(T);
 }
+
+struct Death
+{
+	int killer_type;
+	Vector3 death_loc;
+	float alive_timer;
+};
+
+struct Damage
+{
+	int attacker_type;
+	Vector3 location;
+	float damage;
+};
+
+struct Buildings
+{
+	Vector3 build_locations;
+	int type;
+};
+
+struct Transaction
+{
+	float amount;
+	int target;
+};
+
+struct PlayerData
+{
+	float alive_timer;
+
+	// Basic Info
+	std::string player_name;
+	PlayerType player_type;
+	
+	float total_damage_dealt;
+	int total_kills;
+	float total_credits_earned;
+	float total_credits_spent;
+	
+	std::vector<int> kill_target_types;
+	std::vector<Transaction> credit_earned;
+	std::vector<Transaction> credit_spent;
+
+	// FPS
+	std::vector<Death> deaths;
+	std::vector<Damage> damages;
+	std::vector<Vector3> location_tracking;
+
+	// RTS
+	int total_turrets;
+	int total_barracks;
+	int total_droids;
+	
+	std::vector<Buildings> buildings;
+};
+
+class UserMetrics
+{
+public:
+	// Singleton
+	static UserMetrics* getInstance() {
+		if (!instance) {
+			instance = new UserMetrics();
+		}
+		return instance;
+	}
+	void initialize(std::vector<UserProfile> connected_users);
+
+	void recordDamage(int id, Damage dmg);
+	void recordDeath(int id, Death death);
+	void recordKill(int id, int target_type);
+	void recordBuild(int id, Buildings building);
+	void recordEarning(int id, Transaction trans);
+	void recordSpending(int id, Transaction trans);
+
+	void writeToFile();
+
+private:
+	std::string file_name = "UserMetrics";
+	std::string file_type = ".txt";
+	std::string current_file_path;
+	static UserMetrics* instance;
+	UserMetrics()
+		:init(false), winner(-1), session_id(0)
+	{
+	};
+
+	bool init;
+
+	// Winners RTS = 0, FPS = 1
+	int winner;
+	int session_id;
+
+	std::vector<std::shared_ptr<PlayerData>> player_list;
+};
