@@ -1,3 +1,9 @@
+/*
+Names:
+John Wang - 100657681
+Boris Au - 100660279
+*/
+
 #include "ClientNetwork.h"
 
 

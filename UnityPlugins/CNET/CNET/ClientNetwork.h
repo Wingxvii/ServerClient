@@ -1,3 +1,9 @@
+/*
+Names:
+John Wang - 100657681
+Boris Au - 100660279
+*/
+
 #pragma once
 
 #define CNET_H _declspec(dllexport)

@@ -1,3 +1,9 @@
+/*
+Names:
+John Wang - 100657681
+Boris Au - 100660279
+*/
+
 #pragma once
 #define MAX_PACKET_SIZE 6000
 #define DEFAULT_DATA_SIZE 5700
