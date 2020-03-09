@@ -70,7 +70,7 @@ ClientNetwork::ClientNetwork()
 		return;
 	}
 	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(889);
+	serverTCP.sin_port = htons(8889);
 }
 
 ClientNetwork::~ClientNetwork()
