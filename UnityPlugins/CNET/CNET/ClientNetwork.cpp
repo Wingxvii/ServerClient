@@ -57,7 +57,7 @@ ClientNetwork::ClientNetwork()
 
 	//2. setup server information
 	serverUDP.sin_family = AF_INET;
-	serverUDP.sin_port = htons(54222);
+	serverUDP.sin_port = htons(8888);
 	serverlength = sizeof(serverUDP);
 
 	udp = socket(AF_INET, SOCK_DGRAM, 0);
@@ -70,7 +70,7 @@ ClientNetwork::ClientNetwork()
 		return;
 	}
 	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(54223);
+	serverTCP.sin_port = htons(889);
 }
 
 ClientNetwork::~ClientNetwork()

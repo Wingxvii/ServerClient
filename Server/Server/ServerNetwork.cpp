@@ -334,7 +334,7 @@ void ServerNetwork::ProcessTCP(Packet pack)
 		break;
 
 	default:
-		cout << "Error: Unhandled Packet Type";
+		cout << "Error: Unhandled TCP Packet Type: " + pack.packet_type << endl;
 		break;
 	}
 
@@ -365,7 +365,7 @@ void ServerNetwork::ProcessUDP(Packet pack)
 		break;
 
 	default:
-		cout << "Error: Unhandled Packet Type";
+		cout << "Error: Unhandled UDP Packet Type: " + pack.packet_type << endl;
 		break;
 	}
 }
