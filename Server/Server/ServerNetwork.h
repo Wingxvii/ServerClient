@@ -232,6 +232,8 @@ public:
 	void recordEarning(int id, Transaction trans);
 	void recordSpending(int id, Transaction trans);
 
+	void recordLocation(int id, Vector3 loc);
+
 	void writeToFile();
 
 private:

@@ -814,20 +814,76 @@ void ServerNetwork::packetTCP(char* packet)
 					}
 				}
 				break;
+				case PacketType::ENTITY:
+				{
+					if (sender != 0)
+					{
+						int loc = INITIAL_OFFSET + (sizeof(int) * 2);
+						float x;
+						float y;
+						float z;
+						UnpackData<float>(packet, &loc, &x);
+						UnpackData<float>(packet, &loc, &y);
+						UnpackData<float>(packet, &loc, &z);
+
+
+						UserMetrics::getInstance()->recordLocation(sender, Vector3(x, y, z));
+					}
+				}
+				break;
 				case PacketType::DAMAGE:
 				{
+					int loc = INITIAL_OFFSET + sizeof(int);
+					int id;
+					float dmg;
+					UnpackData<int>(packet, &loc, &id);
+					UnpackData<float>(packet, &loc, &dmg);
+
+					if (id > 3)
+					{
+						id = 0;
+					}
+
 					Damage tmp;
 					tmp.attacker_type = sender;
-					tmp.location;
+					tmp.damage = dmg;
+
+					UserMetrics::getInstance()->recordDamage(id, tmp);
 				}
 				break;
 				case PacketType::BUILD:
 				{
+					int loc = INITIAL_OFFSET;
+					int id;
+					int type;
+					float x;
+					float y;
+					float z;
+					UnpackData<int>(packet, &loc, &id);
+					UnpackData<int>(packet, &loc, &type);
+					UnpackData<float>(packet, &loc, &x);
+					UnpackData<float>(packet, &loc, &y);
+					UnpackData<float>(packet, &loc, &z);
+
 					Buildings tmp;
+					tmp.type = type;
+					tmp.build_locations = Vector3(x, y, z);
+
+					UserMetrics::getInstance()->recordBuild(0, tmp);
 				}
 				case PacketType::DEATH:
 				{
+					int loc = INITIAL_OFFSET;
+					int id;
+					int killerID;
+					UnpackData<int>(packet, &loc, &id);
+					UnpackData<int>(packet, &loc, &killerID);
+
 					Death tmp;
+					tmp.killer_type = killerID;
+
+					UserMetrics::getInstance()->recordDeath(id, tmp);
+					UserMetrics::getInstance()->recordKill(killerID, id);
 				}
 				break;
 				default:
@@ -999,12 +1055,20 @@ void UserMetrics::initialize(std::vector<UserProfile> connected_users)
 
 void UserMetrics::recordDamage(int id, Damage dmg)
 {
+	if (!player_list[id]->location_tracking.empty())
+	{
+		dmg.location = player_list[id]->location_tracking.back();
+	}
 	player_list[id]->damages.push_back(dmg);
 	player_list[id]->total_damage_dealt += dmg.damage;
 }
 
 void UserMetrics::recordDeath(int id, Death death)
 {
+	if (!player_list[id]->location_tracking.empty())
+	{
+		death.death_loc = player_list[id]->location_tracking.back();
+	}
 	player_list[id]->deaths.push_back(death);
 }
 
@@ -1029,6 +1093,11 @@ void UserMetrics::recordSpending(int id, Transaction trans)
 {
 	player_list[id]->credit_spent.push_back(trans);
 	player_list[id]->total_credits_spent += trans.amount;
+}
+
+void UserMetrics::recordLocation(int id, Vector3 loc)
+{
+	player_list[id]->location_tracking.push_back(loc);
 }
 
 void UserMetrics::writeToFile()
