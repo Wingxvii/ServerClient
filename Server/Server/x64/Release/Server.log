@@ -1,9 +1,0 @@
-﻿  main.cpp
-  ServerNetwork.cpp
-D:\Code\ServerClient\Server\Server\ServerNetwork.cpp(87): warning C4018: '<': signed/unsigned mismatch
-  Tokenizer.cpp
-  Generating code
-  Previous IPDB not found, fall back to full compilation.
-  All 384 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  Finished generating code
-  Server.vcxproj -> D:\Code\ServerClient\Server\x64\Release\Server.exe

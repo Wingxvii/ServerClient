@@ -17,7 +17,7 @@ ServerNetwork::ServerNetwork()
 	//socket setup
 	serverUDP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverUDP.sin_family = AF_INET;
-	serverUDP.sin_port = htons(54222);
+	serverUDP.sin_port = htons(8888);
 	clientLength = sizeof(serverUDP);
 	if (bind(udp, (sockaddr*)&serverUDP, sizeof(serverUDP)) == SOCKET_ERROR) {
 		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
@@ -33,7 +33,7 @@ ServerNetwork::ServerNetwork()
 	//socket setup
 	serverTCP.sin_addr.S_un.S_addr = ADDR_ANY;
 	serverTCP.sin_family = AF_INET;
-	serverTCP.sin_port = htons(54223);
+	serverTCP.sin_port = htons(8889);
 	if (bind(tcp, (sockaddr*)&serverTCP, sizeof(serverTCP)) == SOCKET_ERROR) {
 		cout << "Can't bind socket! " << WSAGetLastError() << endl;					//bind client info to client
 	}
@@ -156,7 +156,7 @@ void ServerNetwork::startUpdates()
 		//handle all active sockets
 		for (int i = 0; i < socketCount; i++)
 		{
-			cout << "Packet Recieved:";
+			//cout << "Packet Recieved:";
 
 			SOCKET sock = copy.fd_array[i];
 
@@ -214,6 +214,8 @@ void ServerNetwork::startUpdates()
 						parsedData.insert(parsedData.begin(), to_string(packet.sender));
 
 						acceptNewClient(parsedData, serverUDP, clientLength);
+						sendTo(createPacket(INIT_CONNECTION, to_string(packet.sender), -1), packet.sender);
+
 						break;
 					}
 					else {
@@ -281,13 +283,22 @@ void ServerNetwork::sendTo(Packet pack, int clientID)
 
 	pack.serialize(packet_data);
 
-	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID - 1].udpAddress, ConnectedUsers[clientID - 1].clientLength);
+	int sendOK = sendto(udp, packet_data, packet_size, 0, (sockaddr*)&ConnectedUsers[clientID].udpAddress, ConnectedUsers[clientID].clientLength);
 	if (sendOK == SOCKET_ERROR) {
 		cout << "Send Error: " << WSAGetLastError() << endl;
 	}
 
 }
 
+Packet ServerNetwork::createPacket(PacketType type, string data, int sender)
+{
+	Packet newPacket = Packet();
+	newPacket.packet_type = type;
+	strcpy_s(newPacket.data, (data).c_str() + '\0');
+	newPacket.sender = sender;
+
+	return newPacket;
+}
 
 //the TCP Send
 void ServerNetwork::sendTo(Packet pack, SOCKET client)
@@ -356,14 +367,9 @@ void ServerNetwork::ProcessUDP(Packet pack)
 
 		break;
 	case PacketType::PLAYER_POSITION:
+		cout << "Position recieved from player: " << pack.sender << endl;
 		relay(pack, true);
-
 		break;
-	case PacketType::PUCK_POSITIONS:
-		relay(pack, true);
-
-		break;
-
 	default:
 		cout << "Error: Unhandled UDP Packet Type: " + pack.packet_type << endl;
 		break;

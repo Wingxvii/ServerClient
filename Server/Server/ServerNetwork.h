@@ -72,6 +72,8 @@ public:
 
 	void ProcessTCP(Packet pack);
 	void ProcessUDP(Packet pack);
+	//create packet
+	Packet createPacket(PacketType type, string data, int sender);
 
 
 };
