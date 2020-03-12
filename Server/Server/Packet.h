@@ -2,13 +2,6 @@
 #define MAX_PACKET_SIZE 6000
 #define DEFAULT_DATA_SIZE 5000
 
-#include <stdio.h>
-#include <stdlib.h>   
-#include <string>
-#include <ws2tcpip.h>
-
-#pragma comment (lib, "ws2_32.lib")
-
 enum PacketType {
 	// initialization connection
 	INIT = 0,

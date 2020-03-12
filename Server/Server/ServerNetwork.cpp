@@ -244,13 +244,13 @@ void ServerNetwork::StartLoading(float timer)
 					SwapIndex(0, i);
 				}
 			}
-			UserMetrics::getInstance()->initialize(ConnectedUsers);
 		}
 		else
 		{
 			// Need to add expection handling
-			std::cout << "@@@@@ NO RTS Player! @@@@@" << std::endl;
+
 		}
+		UserMetrics::getInstance()->initialize(ConnectedUsers);
 
 		char packetData[DEFAULT_DATA_SIZE];
 		timeOut = 60.f;
@@ -814,23 +814,6 @@ void ServerNetwork::packetTCP(char* packet)
 					}
 				}
 				break;
-				case PacketType::ENTITY:
-				{
-					if (sender != 0)
-					{
-						int loc = INITIAL_OFFSET + (sizeof(int) * 2);
-						float x;
-						float y;
-						float z;
-						UnpackData<float>(packet, &loc, &x);
-						UnpackData<float>(packet, &loc, &y);
-						UnpackData<float>(packet, &loc, &z);
-
-
-						UserMetrics::getInstance()->recordLocation(sender, Vector3(x, y, z));
-					}
-				}
-				break;
 				case PacketType::DAMAGE:
 				{
 					int loc = INITIAL_OFFSET + sizeof(int);
@@ -871,6 +854,7 @@ void ServerNetwork::packetTCP(char* packet)
 
 					UserMetrics::getInstance()->recordBuild(0, tmp);
 				}
+				break;
 				case PacketType::DEATH:
 				{
 					int loc = INITIAL_OFFSET;
@@ -881,6 +865,11 @@ void ServerNetwork::packetTCP(char* packet)
 
 					Death tmp;
 					tmp.killer_type = killerID;
+
+					if (id > 3)
+					{
+						id = 0;
+					}
 
 					UserMetrics::getInstance()->recordDeath(id, tmp);
 					UserMetrics::getInstance()->recordKill(killerID, id);
@@ -943,33 +932,28 @@ void ServerNetwork::packetUDP(char* packet, sockaddr_in fromAddr, int fromLen)
 				{
 					acceptNewClient(index, fromAddr, fromLen);
 				}
-			}
-			//if (index == (clientCount - 1) && clientCount != 1)
-			//{
-			//	for (int i = 0; i < index; ++i)
-			//	{
-			//		if (ConnectedUsers[i].active)
-			//		{
-			//			char packetData[DEFAULT_DATA_SIZE];
-			//			int loc = INITIAL_OFFSET;
-			//
-			//			PackData(packetData, &loc, i);
-			//			PackData(packetData, &loc, ConnectedUsers[i].Username);
-			//			PackAuxilaryData(packetData, loc, (1 << index), (int)PacketType::INIT, i);
-			//			int sendOK = send(ConnectedUsers[index].tcpSocket, packetData, DEFAULT_DATA_SIZE, 0);
-			//			if (sendOK == SOCKET_ERROR) {
-			//				std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			//			}
-			//		}
-			//	}
-			//}
 
-			switch (packetType)
-			{
-			case PacketType::ENTITY:
+				switch (packetType)
+				{
+				case PacketType::ENTITY:
+				{
+					if (index != 0)
+					{
+						int loc = INITIAL_OFFSET + (sizeof(int) * 2);
+						float x;
+						float y;
+						float z;
+						UnpackData<float>(packet, &loc, &x);
+						UnpackData<float>(packet, &loc, &y);
+						UnpackData<float>(packet, &loc, &z);
+
+						UserMetrics::getInstance()->recordLocation(index, Vector3(x, y, z));
+					}
+				}
 				break;
-			case PacketType::FIRING:
-				break;
+				case PacketType::FIRING:
+					break;
+				}
 			}
 		}
 		for (int i = 0; i < clientCount; ++i)
