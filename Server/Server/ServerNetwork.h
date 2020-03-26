@@ -159,42 +159,42 @@ inline void ServerNetwork::UnpackData(char* buffer, int* loc, T* data)
 
 struct Death
 {
-	int killer_type;
-	Vector3 death_loc;
-	float alive_timer;
+	int killer_type = 0;
+	Vector3 death_loc = Vector3(0.f, 0.f, 0.f);
+	float alive_timer = 0.f;
 };
 
 struct Damage
 {
-	int attacker_type;
-	Vector3 location;
-	float damage;
+	int attacker_type = 0;
+	Vector3 location = Vector3(0.f, 0.f, 0.f);
+	float damage = 0.f;
 };
 
 struct Buildings
 {
-	Vector3 build_locations;
-	int type;
+	Vector3 build_locations = Vector3(0.f, 0.f, 0.f);
+	int type = 0;
 };
 
 struct Transaction
 {
-	float amount;
-	int target;
+	float amount = 0.f;
+	int target = 0;
 };
 
 struct PlayerData
 {
-	float alive_timer;
+	float alive_timer = 0.f;
 
 	// Basic Info
 	std::string player_name;
 	PlayerType player_type;
 	
-	float total_damage_dealt;
-	int total_kills;
-	float total_credits_earned;
-	float total_credits_spent;
+	float total_damage_dealt = 0.f;
+	int total_kills = 0;
+	float total_credits_earned = 0.f;
+	float total_credits_spent = 0.f;
 	
 	std::vector<int> kill_target_types;
 	std::vector<Transaction> credit_earned;
@@ -206,9 +206,9 @@ struct PlayerData
 	std::vector<Vector3> location_tracking;
 
 	// RTS
-	int total_turrets;
-	int total_barracks;
-	int total_droids;
+	int total_turrets = 0;
+	int total_barracks = 0;
+	int total_droids = 0;
 	
 	std::vector<Buildings> buildings;
 };
