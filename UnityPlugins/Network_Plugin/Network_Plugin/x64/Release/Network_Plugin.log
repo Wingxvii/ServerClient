@@ -1,17 +1,7 @@
 ﻿  ClientNetwork.cpp
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(91,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_init' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(96,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_join' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(100,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_msg' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(110,2): warning C4091: '__declspec(dllexport)': ignored on left of 'entity' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(114,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_entity' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(118,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_weapon' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(125,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_damage' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(133,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_build' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(137,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_kill' when no variable is declared
-C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\Network_Plugin\Packet.h(141,2): warning C4091: '__declspec(dllexport)': ignored on left of 'packet_state' when no variable is declared
-     Creating library C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.lib and object C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.exp
+     Creating library C:\Users\natha\Documents\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.lib and object C:\Users\natha\Documents\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.exp
   Generating code
   Previous IPDB not found, fall back to full compilation.
-  All 263 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  All 239 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
-  Network_Plugin.vcxproj -> C:\Vzr\Repos\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.dll
+  Network_Plugin.vcxproj -> C:\Users\natha\Documents\ServerClient\UnityPlugins\Network_Plugin\x64\Release\Network_Plugin.dll
