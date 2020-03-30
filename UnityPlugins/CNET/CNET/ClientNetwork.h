@@ -19,14 +19,6 @@ Boris Au - 100660279
 
 using namespace std;
 
-
-struct Vec3 {
-	float x;
-	float y;
-	float z;
-};
-
-
 #pragma once
 #pragma once
 class ClientNetwork

@@ -20,13 +20,8 @@ enum PacketType {
 	INIT_CONNECTION,
 	//single string
 	MESSAGE,
-	//player's position udp
-	PLAYER_POSITION,
-	//puck impulse for physics player tcp
-	PUCK_IMPULSE,
-	//info about game win and loss tcp
-	GAMEWIN,
-
+	//player's data udp
+	PLAYER,
 };
 
 
