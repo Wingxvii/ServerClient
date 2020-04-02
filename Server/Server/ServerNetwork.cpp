@@ -1,6 +1,7 @@
 #include "ServerNetwork.h"
 
 UserMetrics* UserMetrics::instance = 0;
+RankingSystem* RankingSystem::instance = 0;
 
 ServerNetwork::ServerNetwork()
 {
@@ -251,6 +252,7 @@ void ServerNetwork::StartLoading(float timer)
 
 		}
 		UserMetrics::getInstance()->initialize(ConnectedUsers);
+		RankingSystem::getInstance()->initialize(ConnectedUsers);
 
 		char packetData[DEFAULT_DATA_SIZE];
 		timeOut = 60.f;
@@ -808,6 +810,8 @@ void ServerNetwork::packetTCP(char* packet)
 						{
 							EndGame();
 							UserMetrics::getInstance()->writeToFile();
+							RankingSystem::getInstance()->updateHighScore();
+							RankingSystem::getInstance()->writeToFile();
 							gameEnded = true;
 						}
 						break;
@@ -1060,6 +1064,7 @@ void UserMetrics::recordKill(int id, int target_type)
 {
 	player_list[id]->total_kills++;
 	player_list[id]->kill_target_types.push_back(target_type);
+	RankingSystem::getInstance()->updateScore(id, 100);
 }
 
 void UserMetrics::recordBuild(int id, Buildings building)
@@ -1146,6 +1151,113 @@ void UserMetrics::writeToFile()
 		{
 			save_file << "Spent " << spent.amount << " on " << spent.target << std::endl;
 		}
+	}
+
+	save_file.close();
+}
+
+void RankingSystem::initialize(std::vector<UserProfile> users)
+{
+	if (!init)
+	{
+		if (FILE* file = fopen(file_name.c_str(), "r"))
+		{
+			fclose(file);
+			readFromFile();
+		}
+
+		for (const auto& user : users)
+		{
+			Ranker tmp;
+			tmp.name = user.Username;
+			tmp.score = 0;
+			current_users.push_back(std::make_shared<Ranker>(tmp));
+		}
+
+		init = true;
+	}
+}
+
+void RankingSystem::updateScore(int id, int score)
+{
+	current_users[id]->score = current_users[id]->score + score;
+}
+
+void RankingSystem::findHighScore()
+{
+	for (const auto& user : current_users)
+	{
+		if (user->score > current_leader->score)
+		{
+			current_leader = user;
+		}
+	}
+}
+
+void RankingSystem::updateHighScore()
+{
+	int size = highscore_list.size();
+	if (size > 10)
+	{
+		size = 10;
+	}
+	std::shared_ptr<Ranker> temp_ranker;
+	//temp_ranker->name = current_user;
+	//temp_ranker->score = current_score;
+	for (int i = 0; i < size; i++)
+	{
+		if (highscore_list[0]->score < current_leader->score)
+		{
+			//std::shared_ptr<Ranker> ranker;
+			//ranker->score = current_score;
+			//ranker->name = current_user;
+			highscore_list.push_back(std::make_shared<Ranker>(current_leader));
+		}
+		//else if (highscore_list[i]->score < temp_ranker->score)
+		//{
+		//	std::shared_ptr<Ranker> temp = highscore_list[i];
+		//	highscore_list[i] = temp_ranker;
+		//	temp_ranker = temp;
+		//}
+	}
+}
+
+void RankingSystem::readFromFile()
+{
+	std::ifstream load_file;
+	load_file.open(file_name, std::fstream::in);
+	std::string line = "";
+	while (std::getline(load_file, line))
+	{
+		if (line == "Highscore Board")
+		{
+
+		}
+		else
+		{
+			std::string temp = "";
+			//for (auto c : line)
+			//{
+			//	if (c == ' ')
+			//	{
+			//
+			//	}
+			//}
+		}
+	}
+
+	load_file.close();
+}
+
+void RankingSystem::writeToFile()
+{
+	std::ofstream save_file;
+	save_file.open(file_name, std::fstream::out);
+
+	save_file << "Highscore Board" << std::endl;
+	for (int i = 0; i < highscore_list.size(); i++)
+	{
+		save_file << highscore_list[i]->name << " " << highscore_list[i]->score << std::endl;
 	}
 
 	save_file.close();

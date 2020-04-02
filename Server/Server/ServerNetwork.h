@@ -237,10 +237,10 @@ public:
 	void writeToFile();
 
 private:
+	static UserMetrics* instance;
 	std::string file_name = "UserMetrics";
 	std::string file_type = ".txt";
 	std::string current_file_path;
-	static UserMetrics* instance;
 	UserMetrics()
 		:init(false), winner(-1), session_id(0)
 	{
@@ -253,4 +253,53 @@ private:
 	int session_id;
 
 	std::vector<std::shared_ptr<PlayerData>> player_list;
+};
+
+struct Ranker
+{
+	std::string name;
+	int score;
+};
+
+class RankingSystem
+{
+public:
+	static RankingSystem* getInstance() {
+		if (!instance) {
+			instance = new RankingSystem();
+		}
+		return instance;
+	}
+
+	void initialize(std::vector<UserProfile> users);
+
+	void updateScore(int id, int score);
+
+	void findHighScore();
+
+	void updateHighScore();
+
+	void readFromFile();
+	void writeToFile();
+
+	
+
+private:
+	static RankingSystem* instance;
+	std::string file_name = "Ranking.txt";
+	RankingSystem()
+		:init(false), num_high_scores(0) 
+	{
+		current_leader->name = "nameless";
+		current_leader->score = 0;
+	};
+
+	bool init;
+
+	int num_high_scores;
+	std::shared_ptr<Ranker> current_leader;
+
+	std::vector<std::shared_ptr<Ranker>> current_users;
+	std::vector<std::shared_ptr<Ranker>> highscore_list;
+
 };
