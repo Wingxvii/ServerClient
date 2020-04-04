@@ -88,6 +88,8 @@ public:
 	//std::vector<EntityData> entities;
 
 public:
+	void setMaxUsers(int user);
+
 	//initalize the entity game data
 	//void initEntities();
 	void acceptTCPConnection();
@@ -290,8 +292,8 @@ private:
 	RankingSystem()
 		:init(false), num_high_scores(0) 
 	{
-		current_leader->name = "nameless";
-		current_leader->score = 0;
+		//current_leader->name = "nameless";
+		//current_leader->score = 0;
 	};
 
 	bool init;

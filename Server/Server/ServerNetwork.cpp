@@ -78,6 +78,11 @@ ServerNetwork::~ServerNetwork()
 	WSACleanup();
 }
 
+void ServerNetwork::setMaxUsers(int users)
+{
+	clientLimit = users;
+}
+
 void ServerNetwork::acceptTCPConnection()
 {
 	std::cout << "TCP Connection" << std::endl;
@@ -109,7 +114,7 @@ void ServerNetwork::acceptTCPConnection()
 		newProfile.tcpAddress = tmpAddress;
 		newProfile.tcpLength = tmpLen;
 
-		if (clientCount < 9) {
+		if (clientCount < clientLimit) {
 			newProfile.index = clientCount;
 			clientCount++;
 		}
@@ -1211,7 +1216,7 @@ void RankingSystem::updateHighScore()
 			//std::shared_ptr<Ranker> ranker;
 			//ranker->score = current_score;
 			//ranker->name = current_user;
-			highscore_list.push_back(std::make_shared<Ranker>(current_leader));
+			highscore_list.push_back(current_leader);
 		}
 		//else if (highscore_list[i]->score < temp_ranker->score)
 		//{
