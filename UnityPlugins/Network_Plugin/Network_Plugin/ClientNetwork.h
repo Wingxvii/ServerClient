@@ -9,23 +9,20 @@
 #endif
 
 #include <ws2tcpip.h>
-#include <string>
 #include <iostream>
 #include <thread>
 #include <queue>
+#include <fstream>
 #include "Packet.h"
 
-#pragma comment (lib, "ws2_32.lib")
+#define PACKET_STAMP 0
+#define PACKET_LENGTH 4
+#define PACKET_RECEIVERS 8
+#define PACKET_TYPE 12
+#define PACKET_SENDER 16
+#define INITIAL_OFFSET 20
+#define OK_STAMP 123456789
 
-struct Vec3 {
-	float x;
-	float y;
-	float z;
-};
-
-
-#pragma once
-#pragma once
 class ClientNetwork
 {
 public:
@@ -39,45 +36,61 @@ public:
 	struct addrinfo* ptrTCP = NULL, hintsTCP;
 	//sockaddr_in serverUDP;
 	//sockaddr_in serverTCP;
-	//int serverlength = 0;
 
 	bool listening = true;
+	bool init = false;
+	bool socketInit = false;
+	bool consoleOpen = false;
 
 	//client details
-	std::string ipActual = "127.0.0.1";
+	std::string filePath = "ErrorLog.txt";
+	std::string serverIP = "127.0.0.1";
 	int index = 0;
 	int error = 0;
 	int errorLoc = 0;
+	std::string errorText = "";
 public:
+
 	bool connectToServer(std::string ip);
 
-	// int sendMessage(std::string message, bool useTCP = false);
+	//bool sendData(int packetType, char* data, size_t size, bool useTCP);
+
+	bool sendDataPacket(char* ptr, int length, bool TCP);
 
 	void startUpdates();
-	bool sendData(int packetType, std::string message, bool useTCP = false);	//udp send data
-
-	//tokenizes into string vects
-	static std::vector<std::string> tokenize(char token, std::string text);
 
 	int GetError();
 	int GetErrorLoc();
+	std::string GetErrorText();
 
+	//void PrintPackInfo(int sender, char* data, int datalen);
+	void ShowConsole(bool open);
+
+	void UpdateFile();
+	void ClearFile();
+	void Reset();
 };
 
 extern "C" {
 	//message action
-	void (*recievePacket)(int type, int sender, char* data);
+	// void (*receivePacket)(int type, int sender, char* data);
+
+	void (*receivePacket)(char* buffer, int length, bool TCP);
 
 	NETWORK_H ClientNetwork* CreateClient();
 	NETWORK_H void DeleteClient(ClientNetwork* client);
 	NETWORK_H bool Connect(char* ip, ClientNetwork* client);
+	NETWORK_H void SetupPacketReception(void(*action)(char* buffer, int length, bool TCP));
 	NETWORK_H void StartUpdating(ClientNetwork* client);
-	NETWORK_H void SetupPacketReception(void(*action)(int type, int sender, char* data));
+	NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client);
 
-	NETWORK_H bool SendData(int type, char* message, bool useTCP, ClientNetwork* client);
+	//NETWORK_H int GetPlayerNumber(ClientNetwork* client);
 
-	NETWORK_H int GetPlayerNumber(ClientNetwork* client);
-
+	NETWORK_H void SendDebugOutput(char* data);
 	NETWORK_H int GetError(ClientNetwork* client);
 	NETWORK_H int GetErrorLoc(ClientNetwork* client);
+	NETWORK_H void ShowConsole(ClientNetwork* client, bool open);
+	NETWORK_H void UpdateFile(ClientNetwork* client);
+	NETWORK_H void ClearFile(ClientNetwork* client);
+	NETWORK_H void Reset(ClientNetwork* client);
 }

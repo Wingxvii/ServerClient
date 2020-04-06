@@ -1,6 +1,5 @@
 #include "ClientNetwork.h"
 
-
 //constructor wrapper
 NETWORK_H ClientNetwork* CreateClient() {
 	return new ClientNetwork();
@@ -15,9 +14,9 @@ NETWORK_H bool Connect(char* ip, ClientNetwork* client)
 	return client->connectToServer(ip);
 }
 
-NETWORK_H bool SendData(int type, char* message, bool useTCP, ClientNetwork* client)
+NETWORK_H void SetupPacketReception(void(*action)(char* buffer, int length, bool TCP))
 {
-	return client->sendData((PacketType)type, message, useTCP);
+	receivePacket = action;
 }
 
 NETWORK_H void StartUpdating(ClientNetwork* client)
@@ -25,14 +24,15 @@ NETWORK_H void StartUpdating(ClientNetwork* client)
 	client->startUpdates();
 }
 
-NETWORK_H void SetupPacketReception(void(*action)(int type, int sender, char* data))
+NETWORK_H void SendDebugOutput(char* data)
 {
-	recievePacket = action;
+	printf(data);
+	printf("\n");
 }
 
-NETWORK_H int GetPlayerNumber(ClientNetwork* client)
+NETWORK_H bool SendDataPacket(char* ptr, int length, bool TCP, ClientNetwork* client)
 {
-	return client->index;
+	return client->sendDataPacket(ptr, length, TCP);
 }
 
 NETWORK_H int GetError(ClientNetwork* client)
@@ -43,6 +43,26 @@ NETWORK_H int GetError(ClientNetwork* client)
 NETWORK_H int GetErrorLoc(ClientNetwork* client)
 {
 	return client->GetErrorLoc();
+}
+
+NETWORK_H void ShowConsole(ClientNetwork* client, bool open)
+{
+	client->ShowConsole(open);
+}
+
+NETWORK_H void UpdateFile(ClientNetwork* client)
+{
+	client->UpdateFile();
+}
+
+NETWORK_H void ClearFile(ClientNetwork* client)
+{
+	client->ClearFile();
+}
+
+NETWORK_H void Reset(ClientNetwork* client)
+{
+	client->Reset();
 }
 
 
@@ -69,7 +89,7 @@ ClientNetwork::ClientNetwork()
 	//serverTCP.sin_family = AF_INET;
 	//serverTCP.sin_port = htons(54223);
 	//tcp = socket(serverTCP.sin_family, SOCK_STREAM, IPPROTO_TCP);
-	
+
 	memset(&hintsUDP, 0, sizeof(hintsUDP));
 	hintsUDP.ai_family = AF_INET;
 	hintsUDP.ai_socktype = SOCK_DGRAM;
@@ -78,6 +98,8 @@ ClientNetwork::ClientNetwork()
 	//serverUDP.sin_family = AF_INET;
 	//serverUDP.sin_port = htons(54222);
 	//udp = socket(serverUDP.sin_family, SOCK_DGRAM, IPPROTO_UDP);
+
+	ClearFile();
 }
 
 ClientNetwork::~ClientNetwork()
@@ -86,25 +108,27 @@ ClientNetwork::~ClientNetwork()
 	closesocket(tcp);
 	closesocket(udp);
 	WSACleanup();
+	ShowConsole(false);
 }
 
-
 bool ClientNetwork::connectToServer(std::string ip)
-{
-	if (ip != "")
-	{
-		ipActual = ip;
+{	
+	if (socketInit) {
+		return true;
 	}
 
-	// Converting string ip address to actually ip address
-	//inet_pton(serverTCP.sin_family, ip.c_str(), &serverTCP.sin_addr);
-	//connecting to the tcp server
-	
-	if (getaddrinfo(ipActual.c_str(), "5000", &hintsTCP, &ptrTCP))
+	if (ip != "")
+	{
+		serverIP = ip;
+	}
+
+	std::cout << "ConnectingTCP..." << std::endl;
+	if (getaddrinfo(serverIP.c_str(), "55555", &hintsTCP, &ptrTCP) != 0)
 	{
 		//std::cout << "Getaddrinfo TCP Failed! " << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 1;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -115,15 +139,37 @@ bool ClientNetwork::connectToServer(std::string ip)
 		// std::cout << "Can't create TCP socket, Err #" << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 2;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
 
-	
-	if (getaddrinfo(ipActual.c_str(), "5001", &hintsUDP, &ptrUDP))
+	if (connect(tcp, ptrTCP->ai_addr, (int)ptrTCP->ai_addrlen) == SOCKET_ERROR)
+	{
+		//std::cout << "TCP Socket failed to connect to server, Err #" << WSAGetLastError() << std::endl;
+		error = WSAGetLastError();
+		errorLoc = 5;
+		UpdateFile();
+		closesocket(tcp);
+		freeaddrinfo(ptrTCP);
+		WSACleanup();
+
+		std::cout << "Connection Failed!" << std::endl;
+
+		return false;
+	}
+	else
+	{
+		socketInit = true;
+	}
+	std::cout << "TCP Connected!" << std::endl;
+
+	std::cout << "ConnectingUDP..." << std::endl;
+	if (getaddrinfo(serverIP.c_str(), "60000", &hintsUDP, &ptrUDP) != 0)
 	{
 		error = WSAGetLastError();
 		errorLoc = 3;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
@@ -134,135 +180,99 @@ bool ClientNetwork::connectToServer(std::string ip)
 		//std::cout << "Can't create UDP socket, Err #" << WSAGetLastError() << std::endl;
 		error = WSAGetLastError();
 		errorLoc = 4;
+		UpdateFile();
 		WSACleanup();
 		return false;
 	}
-
-	if (connect(tcp, ptrTCP->ai_addr, (int)ptrTCP->ai_addrlen) == SOCKET_ERROR)
-	{
-		//std::cout << "TCP Socket failed to connect to server, Err #" << WSAGetLastError() << std::endl;
-		error = WSAGetLastError();
-		errorLoc = 5;
-		closesocket(tcp);
-		freeaddrinfo(ptrTCP);
-		WSACleanup();
-		return false;
-	}
+	std::cout << "Connected UDP!" << std::endl;
 
 	//ping and determine client index
+	init = true;
 	return true;
 }
 
-bool ClientNetwork::sendData(int packetType, std::string message, bool useTCP)
+bool ClientNetwork::sendDataPacket(char* ptr, int length, bool TCP)
 {
-	//create packet
-	Packet packet;
-	strcpy_s(packet.data, message.c_str() + '\0');
-	packet.packet_type = packetType;
-	packet.sender = index;
-
-	//set size
-	const unsigned int packet_size = sizeof(packet);
-	char packet_data[packet_size];
-
-	//seralize
-	packet.serialize(packet_data);
-
-	//udp send
-	if (!useTCP) {
-		if (sendto(udp, packet_data, packet_size, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
-			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			error = WSAGetLastError();
-			errorLoc = 6;
-			return false;
+	if (init)
+	{
+		if (!TCP) {
+			//PrintPackInfo(1, ptr, length);
+			if (sendto(udp, ptr, DEFAULT_DATA_SIZE, 0, ptrUDP->ai_addr, (int)ptrUDP->ai_addrlen) == SOCKET_ERROR) {
+				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+				error = WSAGetLastError();
+				errorLoc = 6;
+				UpdateFile();
+				return false;
+			}
 		}
-	}
-	//tcp send
-	else {
-		if (send(tcp, packet_data, packet_size, 0) == SOCKET_ERROR)
-		{
-			//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
-			error = WSAGetLastError();
-			errorLoc = 7;
-			return false;
+		//tcp send
+		else {
+			if (send(tcp, ptr, DEFAULT_DATA_SIZE, 0) == SOCKET_ERROR)
+			{
+				//std::cout << "Send Error: " << WSAGetLastError() << std::endl;
+				error = WSAGetLastError();
+				errorLoc = 7;
+				UpdateFile();
+				return false;
+			}
 		}
+		return true;
 	}
-	return true;
+	return false;
 }
 
 void ClientNetwork::startUpdates()
 {
-	//multithread
-	std::thread udpUpdate = std::thread([&]() {
-		char* buf = new char[MAX_PACKET_SIZE];
+	std::thread tcpUpdate = std::thread([&]()
+		{
+			char* buff = new char[DEFAULT_DATA_SIZE];
 
-		while (listening) {
-			//recieve messages
-			int length = recv(udp, buf, MAX_PACKET_SIZE, 0);
-			if (length != SOCKET_ERROR) {
-				Packet packet;
-				packet.deserialize(buf);
-				if (packet.packet_type == INIT_CONNECTION) {
-					std::vector<std::string> parsedData;
-					parsedData = tokenize(',', packet.data);
+			while (listening) {
+				//receive packets
+				int sError = recv(tcp, buff, DEFAULT_DATA_SIZE, 0);
+				if (sError != SOCKET_ERROR) {
+					int pLength = 0;
+					int ok_pack = 0;
+					memcpy(&ok_pack, &buff[0] + PACKET_STAMP, sizeof(ok_pack));
+					if (ok_pack == OK_STAMP)
+					{
+						memcpy(&pLength, &buff[0] + PACKET_LENGTH, sizeof(pLength));
 
-					index = std::stoi(parsedData[0]);
-				}
-				else {
-					recievePacket(packet.packet_type, packet.sender, packet.data);
-				}
-			}
-		}
-	});
-	udpUpdate.detach();
-
-	std::thread tcpUpdate = std::thread([&]() {
-		char* buf = new char[MAX_PACKET_SIZE];
-
-		while (listening) {
-			//recieve packets
-			int length = recv(tcp, buf, MAX_PACKET_SIZE, 0);
-			if (length != SOCKET_ERROR) {
-				Packet packet;
-				packet.deserialize(buf);
-				if (packet.packet_type == INIT_CONNECTION) {
-					std::vector<std::string> parsedData;
-					parsedData = tokenize(',', packet.data);
-
-					index = std::stoi(parsedData[0]);
-
-					recievePacket(packet.packet_type, -1, packet.data);
-
-					//connect to udp
-					//inet_pton(serverUDP.sin_family, ipActual.c_str(), &serverUDP.sin_addr);
-
-					sendData(INIT_CONNECTION, std::to_string(index), false);
-				}
-				else {
-					recievePacket(packet.packet_type, packet.sender, packet.data);
+						//PrintPackInfo(-1, buff, pLength);
+						receivePacket(buff, pLength, true);
+					}
 				}
 			}
-		}
 
-	});
+			delete[] buff;
+		});
 	tcpUpdate.detach();
 
-}
-std::vector<std::string> ClientNetwork::tokenize(char token, std::string text)
-{
-	std::vector<std::string> temp;
-	int lastTokenLocation = 0;
 
-	for (int i = 0; i < text.size(); i++) {
-		if (text[i] == token) {
-			temp.push_back(text.substr(lastTokenLocation, i - lastTokenLocation));
-			lastTokenLocation = i + 1;
+	std::thread udpUpdate = std::thread([&]()
+		{
+			char* buff = new char[DEFAULT_DATA_SIZE];
 
-		}
-	}
-	temp.push_back(text.substr(lastTokenLocation, text.size()));
+			while (listening) {
+				//receive messages
+				int sError = recv(udp, buff, DEFAULT_DATA_SIZE, 0);
 
-	return temp;
+				if (sError != SOCKET_ERROR) {
+					int ok_pack = 0;
+					memcpy(&ok_pack, &buff[0] + PACKET_STAMP, sizeof(ok_pack));
+					if (ok_pack == OK_STAMP)
+					{
+						int pLength = 0;
+						memcpy(&pLength, &buff[0] + PACKET_LENGTH, sizeof(pLength));
+						//PrintPackInfo(-1, buff, pLength);
+						receivePacket(buff, pLength, false);
+					}
+				}
+			}
+
+			delete[] buff;
+		});
+	udpUpdate.detach();
 }
 
 int ClientNetwork::GetError()
@@ -275,3 +285,65 @@ int ClientNetwork::GetErrorLoc()
 	return errorLoc;
 }
 
+std::string ClientNetwork::GetErrorText()
+{
+	return errorText;
+}
+
+void ClientNetwork::ShowConsole(bool open)
+{
+	if (open && !consoleOpen)
+	{
+		FILE* pConsole;
+		AllocConsole();
+		freopen_s(&pConsole, "CONOUT$", "wb", stdout);
+		consoleOpen = true;
+	}
+	else if (!open && consoleOpen)
+	{
+		FreeConsole();
+		consoleOpen = false;
+	}
+}
+
+void ClientNetwork::UpdateFile()
+{
+	std::ofstream saveFile;
+	saveFile.open(filePath);
+	if (ClientNetwork::GetErrorLoc() >= 100)
+	{
+		saveFile << "Error Loc: " << ClientNetwork::GetErrorLoc()
+			<< "\t Error: " << ClientNetwork::GetErrorText() << std::endl;
+	}
+	else
+	{
+		saveFile << "Error Loc: " << ClientNetwork::GetErrorLoc()
+			<< "\t Error: " << ClientNetwork::GetError() << std::endl;
+	}
+
+	saveFile.close();
+}
+
+void ClientNetwork::ClearFile()
+{
+	std::ofstream saveFile;
+	saveFile.open(filePath);
+	saveFile.clear();
+	saveFile.close();
+}
+
+void ClientNetwork::Reset()
+{
+
+}
+
+// Printing Packet Data
+//void ClientNetwork::PrintPackInfo(int sender, char* data, int dataLen)
+//{
+//	std::cout << "Sender: " << sender << ", " << dataLen << ", Data: ";
+//	for (int i = 0; i < dataLen; ++i)
+//	{
+//		std::cout << (int)data[i] << "\t";
+//	}
+//	std::cout << "\nend" << std::endl;
+//}
