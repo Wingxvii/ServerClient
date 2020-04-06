@@ -257,8 +257,8 @@ private:
 
 struct Ranker
 {
-	std::string name;
-	int score;
+	std::string name = "";
+	int score = 0;
 };
 
 class RankingSystem
@@ -290,8 +290,9 @@ private:
 	RankingSystem()
 		:init(false), num_high_scores(0) 
 	{
-		current_leader->name = "nameless";
-		current_leader->score = 0;
+		current_leader = std::make_shared<Ranker>();
+		//current_leader->name = "nameless";
+		//current_leader->score = 0;
 	};
 
 	bool init;

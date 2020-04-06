@@ -810,6 +810,7 @@ void ServerNetwork::packetTCP(char* packet)
 						{
 							EndGame();
 							UserMetrics::getInstance()->writeToFile();
+							RankingSystem::getInstance()->findHighScore();
 							RankingSystem::getInstance()->updateHighScore();
 							RankingSystem::getInstance()->writeToFile();
 							gameEnded = true;
@@ -1064,12 +1065,19 @@ void UserMetrics::recordKill(int id, int target_type)
 {
 	player_list[id]->total_kills++;
 	player_list[id]->kill_target_types.push_back(target_type);
-	RankingSystem::getInstance()->updateScore(id, 100);
+	RankingSystem::getInstance()->updateScore(id, 1000);
 }
 
 void UserMetrics::recordBuild(int id, Buildings building)
 {
 	player_list[id]->buildings.push_back(building);
+	RankingSystem::getInstance()->updateScore(id, 100);
+	switch (building.type)
+	{
+	case 4:
+		player_list[0]->total_turrets++;
+		break;
+	}
 }
 
 void UserMetrics::recordEarning(int id, Transaction trans)
@@ -1187,6 +1195,7 @@ void RankingSystem::findHighScore()
 {
 	for (const auto& user : current_users)
 	{
+		std::cout << "User " << user->name << ", Score: " << user->score << std::endl;
 		if (user->score > current_leader->score)
 		{
 			current_leader = user;
@@ -1197,28 +1206,35 @@ void RankingSystem::findHighScore()
 void RankingSystem::updateHighScore()
 {
 	int size = highscore_list.size();
-	if (size > 10)
+	if (size <= 0)
 	{
-		size = 10;
+		highscore_list.push_back(current_leader);
 	}
-	std::shared_ptr<Ranker> temp_ranker;
-	//temp_ranker->name = current_user;
-	//temp_ranker->score = current_score;
-	for (int i = 0; i < size; i++)
+	else
 	{
-		if (highscore_list[0]->score < current_leader->score)
+		if (size > 10)
 		{
-			//std::shared_ptr<Ranker> ranker;
-			//ranker->score = current_score;
-			//ranker->name = current_user;
-			highscore_list.push_back(std::make_shared<Ranker>(current_leader));
+			size = 10;
 		}
-		//else if (highscore_list[i]->score < temp_ranker->score)
-		//{
-		//	std::shared_ptr<Ranker> temp = highscore_list[i];
-		//	highscore_list[i] = temp_ranker;
-		//	temp_ranker = temp;
-		//}
+		std::shared_ptr<Ranker> temp_ranker;
+		//temp_ranker->name = current_user;
+		//temp_ranker->score = current_score;
+		for (int i = 0; i < size; i++)
+		{
+			if (highscore_list[0]->score < current_leader->score)
+			{
+				//std::shared_ptr<Ranker> ranker;
+				//ranker->score = current_score;
+				//ranker->name = current_user;
+				highscore_list.push_back(current_leader);
+			}
+			//else if (highscore_list[i]->score < temp_ranker->score)
+			//{
+			//	std::shared_ptr<Ranker> temp = highscore_list[i];
+			//	highscore_list[i] = temp_ranker;
+			//	temp_ranker = temp;
+			//}
+		}
 	}
 }
 
@@ -1251,6 +1267,7 @@ void RankingSystem::readFromFile()
 
 void RankingSystem::writeToFile()
 {
+	std::cout << "Saved to File" << std::endl;
 	std::ofstream save_file;
 	save_file.open(file_name, std::fstream::out);
 
